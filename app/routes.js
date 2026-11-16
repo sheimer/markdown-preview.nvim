@@ -4,12 +4,31 @@ const logger = require('./lib/util/logger')('app/routes')
 
 const routes = []
 
+const contentTypes = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf'
+}
+
 function sendFile(filename, res) {
   try {
     if (!fs.statSync(filename).isFile()) return false
   } catch (error) {
     return false
   }
+  const contentType = contentTypes[path.extname(filename).toLowerCase()]
+  if (contentType) res.setHeader('Content-Type', contentType)
   const stream = fs.createReadStream(filename)
   stream.on('error', (error) => {
     logger.error('Could not read preview asset: ', filename, error)

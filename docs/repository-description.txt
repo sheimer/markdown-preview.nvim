@@ -1,0 +1,1 @@
+Independently maintained Neovim Markdown preview with linked-document navigation, independent per-buffer previews, switchable palettes, and improved tables and GitHub alerts.

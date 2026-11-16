@@ -11,18 +11,17 @@ function resolveHtmlImage (tokens, idx) {
   return content
 }
 
-function resolveImage (tokens, idx) {
-  const src = tokens[idx].attrs[0][1]
-  const alt = tokens[idx].content
-  const resAttrs = tokens[idx].attrs.slice(2).reduce((pre, cur) => `${pre} ${cur[0]}=${cur[1]}`, '')
-  if (/^(http|\/\/|data:)/.test(src)) {
-    return `<img src="${src}" alt="${alt}" ${resAttrs} />`
-  }
-  return `<img src="/_local_image_${encodeURIComponent(src)}" alt="${alt}" ${resAttrs} />`
-}
-
 export default function localImage (md) {
-  md.renderer.rules.image = resolveImage
+  const renderImage = md.renderer.rules.image
+  md.renderer.rules.image = (tokens, index, options, env, self) => {
+    const token = tokens[index]
+    const src = token.attrGet('src') || ''
+    if (!/^(http|\/\/|data:)/.test(src)) {
+      token.attrSet('src', '/_local_image_' + encodeURIComponent(src))
+    }
+    // Keep Markdown's attribute escaping, alt text and XHTML rendering rules.
+    return renderImage(tokens, index, options, env, self)
+  }
   md.renderer.rules.html_block = resolveHtmlImage
   md.renderer.rules.html_inline = resolveHtmlImage
 }

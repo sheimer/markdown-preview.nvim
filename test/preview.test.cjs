@@ -69,6 +69,19 @@ test(
           }),
         'Preview styles did not load'
       )
+      await page.evaluate(() => {
+        if (window.__mkdpRefreshTrace) return
+        window.__mkdpRefreshTrace = []
+        window.socket.on('refresh_content', (data) => {
+          window.__mkdpRefreshTrace.push({
+            firstLine: data.content[0],
+            time: performance.now(),
+            visibility: document.visibilityState
+          })
+          if (window.__mkdpRefreshTrace.length > 12)
+            window.__mkdpRefreshTrace.shift()
+        })
+      })
     }
     const clickDocument = (page, label, options) =>
       popup(() =>
@@ -82,6 +95,30 @@ test(
         try {
           await check()
         } catch (error) {
+          const pages = await Promise.all(
+            context.pages().map(async (page) => ({
+              url: page.url(),
+              state: await page
+                .evaluate(() => ({
+                  text: document
+                    .querySelector('.markdown-body')
+                    ?.textContent.slice(0, 160),
+                  connected: window.socket?.connected,
+                  transport: window.socket?.io.engine?.transport.name,
+                  visibility: document.visibilityState,
+                  received: window.__mkdpRefreshTrace
+                }))
+                .catch(() => null)
+            }))
+          )
+          t.diagnostic(
+            JSON.stringify({
+              pages,
+              buffers: await nvim
+                .lua('return vim.g.mkdp_preview_buffers')
+                .catch(() => null)
+            })
+          )
           failure = error
           throw error
         }
@@ -247,8 +284,21 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
         await nvim.lua(
           "vim.api.nvim_buf_set_lines(0, 0, 1, false, {'UPDATED IN ALL PREVIEWS'}); vim.api.nvim_exec_autocmds('TextChanged', {buffer=0})"
         )
-        for (const page of [detail, secondDetail, unsaved])
+        for (const page of [detail, secondDetail, unsaved]) {
+          await until(
+            () =>
+              page.evaluate(() =>
+                window.__mkdpRefreshTrace.some(
+                  (event) => event.firstLine === 'UPDATED IN ALL PREVIEWS'
+                )
+              ),
+            'A preview did not receive the unsaved content update'
+          )
+          // Check delivery independently of window activation, then inspect the
+          // visible UI as a user would. Focusing does not request another refresh.
+          await page.bringToFront()
           await rendered(page, 'UPDATED IN ALL PREVIEWS')
+        }
         assert.equal(
           await fs
             .readFile(
@@ -470,6 +520,58 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
           assert.equal(source.isClosed(), false)
           assert.equal(table.isClosed(), false)
           await nvim.lua('vim.api.nvim_set_current_buf(...)', [sourceBuf])
+        }
+      }
+    )
+
+    await step(
+      'Markdown image attributes remain text with raw HTML disabled',
+      async () => {
+        const options = await nvim.lua('return vim.g.mkdp_preview_options')
+        await nvim.lua(`local options = vim.g.mkdp_preview_options
+options.mkit = {html = false, typographer = false}
+vim.g.mkdp_preview_options = options`)
+        try {
+          await nvim.edit('image-attributes.md')
+          const page = await start()
+          await rendered(page, 'Image attributes')
+          const broken = page.locator('img[src*="missing-image.svg"]')
+          await until(
+            () => broken.evaluate((el) => el.complete),
+            'Broken image did not finish loading'
+          )
+          assert.equal(await broken.getAttribute('onerror'), null)
+          assert.equal(
+            await page.evaluate(() => window.imageInjected),
+            undefined
+          )
+          assert.equal(
+            await broken.getAttribute('title'),
+            'hello onerror=window.imageInjected=1'
+          )
+          const local = page.locator('img[src*="local.svg"]')
+          await until(
+            () => local.evaluate((el) => el.complete && el.naturalWidth === 20),
+            'Image with escaped attributes did not load'
+          )
+          assert.equal(
+            await local.getAttribute('alt'),
+            'Description with "quotes" & <angles>'
+          )
+          assert.equal(
+            await local.getAttribute('title'),
+            'A "quoted" title & <value>'
+          )
+          assert.equal(await local.getAttribute('width'), '40')
+          assert.equal(await local.getAttribute('height'), '20')
+          assert.equal(await page.locator('#raw-html-disabled').count(), 0)
+          assert.ok(
+            (await page.locator('.markdown-body').textContent()).includes(
+              '<img id="raw-html-disabled"'
+            )
+          )
+        } finally {
+          await nvim.lua('vim.g.mkdp_preview_options = ...', [options])
         }
       }
     )

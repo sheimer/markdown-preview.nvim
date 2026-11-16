@@ -54,7 +54,20 @@ exports.run = function () {
   })
 
   // websocket server
-  const io = websocket(server)
+  const io = websocket(server, {
+    // Check browser origins for polling and WebSocket handshakes. Native
+    // clients may omit Origin; this is not remote authentication.
+    allowRequest(req, done) {
+      if (req.headers.origin === undefined) return done(null, true)
+      try {
+        const origin = new URL(req.headers.origin).origin
+        const address = new URL('http://' + req.headers.host).origin
+        done(null, origin === address)
+      } catch (error) {
+        done(null, false)
+      }
+    }
+  })
 
   io.on('connection', async (client) => {
     const { handshake = { query: {} } } = client

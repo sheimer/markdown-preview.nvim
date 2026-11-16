@@ -107,7 +107,10 @@ vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>')
 The lifecycle uses independent per-buffer previews. Set `g:mkdp_auto_start = 1`
 to opt into opening supported buffers on entry. Close-on-switch and
 combined-preview settings are retired. Keep the server on
-loopback. The preview server has no remote authentication.
+loopback. The preview server has no remote authentication. Browser socket
+handshakes must match the preview server's HTTP origin. Clients without an
+Origin header remain allowed; this check does not provide authentication or
+DNS-rebinding protection.
 
 A supported browser hook keeps application/profile choices in user configuration:
 

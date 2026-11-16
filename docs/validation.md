@@ -92,6 +92,46 @@ click opened the encoded-space target in a native tab; target was hidden/listed
 and the editor stayed put; unsaved updates rendered; stopping the target closed
 its tab while the source stayed open; Neovim shutdown closed the source.
 
+## Runtime dependency follow-up review
+
+Compared with v0.1.0, this follow-up retains the baseline environment and adds
+acceptance coverage for the updated socket and parser dependencies. The baseline
+results above remain historical evidence.
+
+The review suite adds:
+
+- Explicit polling and WebSocket clients receiving the same complete unsaved
+  document above 1 MiB, followed by reconnection and per-buffer stop.
+- Same-origin connections accepted and foreign, malformed or `null` browser
+  Origins rejected on both transports. A polling HTTP handshake returns 403.
+  The existing connection-race test also exercises a native client without Origin.
+- Automatic browser transport upgrade, fuzzy links, email links, typographic
+  replacements and rejection of Markdown `javascript:` links.
+- A smartquotes input with 80,000 repetitions of each unmatched quote pattern,
+  using the renderer's normal typographer setting,
+  with a four-second completion budget and a subsequent live edit. The same
+  browser regression fails against the unchanged installed v0.1.0 baseline.
+- Image title/alt escaping, inert injected handler text, image dimensions and
+  disabled raw HTML. Against the installed baseline, the image title actually
+  created and executed an `onerror` handler with `mkit.html = false`.
+
+The expanded suite passed 18/18 checks in both Chromium and Firefox. The locked
+reinstall used `npm ci --ignore-scripts --no-audit --no-fund`, followed by
+`npm run build`. Dependency inventory, audit counts and remaining origin/auth
+limits are recorded in [maintenance](maintenance.md#first-follow-up-runtime-dependencies-and-input-handling).
+
+The actual MD Preview.app / Firefox 161.0 launch-helper smoke also passed with
+an isolated temporary profile against this follow-up. The installed plugin was
+left at v0.1.0 for the review boundary.
+
+One intermittent Firefox multi-preview DOM timeout remains unexplained. Five
+repeat runs, an additional 20-second idle case, and two independent five-preview
+stress runs (one including a 35-second idle) passed. The test now asserts socket
+delivery to every preview separately before foregrounding each for DOM checks,
+and retains bounded event/socket diagnostics on failure. Foregrounding does not
+request another content refresh. This improves diagnosis and visible-UI checks;
+it is not a claim that the original timeout's cause has been fixed.
+
 ## Limits
 
 Headless runs do not validate macOS window decorations, desktop focus behavior,

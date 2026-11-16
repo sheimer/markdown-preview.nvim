@@ -4,6 +4,31 @@ const logger = require('./lib/util/logger')('app/routes')
 
 const routes = []
 
+function sendFile(filename, res) {
+  try {
+    if (!fs.statSync(filename).isFile()) return false
+  } catch (error) {
+    return false
+  }
+  const stream = fs.createReadStream(filename)
+  stream.on('error', (error) => {
+    logger.error('Could not read preview asset: ', filename, error)
+    if (res.headersSent) return res.destroy()
+    res.statusCode = 404
+    res.end('Preview asset not found.')
+  })
+  stream.pipe(res)
+  return true
+}
+
+function staticAsset(root, filename, res) {
+  const directory = path.resolve(root)
+  const target = path.resolve(directory, filename)
+  const relative = path.relative(directory, target)
+  if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) return false
+  return sendFile(target, res)
+}
+
 const use = function (route) {
   routes.unshift((req, res, next) => () => route(req, res, next))
 }
@@ -43,16 +68,16 @@ use(async (req, res, next) => {
 
 // /page/:number
 use((req, res, next) => {
-  if (/\/page\/\d+/.test(req.asPath)) {
-    return fs.createReadStream('./out/index.html').pipe(res)
+  if (/^\/page\/\d+$/.test(req.asPath)) {
+    if (sendFile('./out/index.html', res)) return
   }
   next()
 })
 
 // /_next/path
 use((req, res, next) => {
-  if (/\/_next/.test(req.asPath)) {
-    return fs.createReadStream(path.join('./out', req.asPath)).pipe(res)
+  if (req.asPath.startsWith('/_next/')) {
+    if (staticAsset('./out/_next', req.asPath.slice('/_next/'.length), res)) return
   }
   next()
 })
@@ -63,11 +88,11 @@ use((req, res, next) => {
   try {
     if (req.mkcss && req.asPath === '/_static/markdown.css') {
       if (fs.existsSync(req.mkcss)) {
-        return fs.createReadStream(req.mkcss).pipe(res)
+        if (sendFile(req.mkcss, res)) return
       }
     } else if (req.hicss && req.asPath === '/_static/highlight.css') {
       if (fs.existsSync(req.hicss)) {
-        return fs.createReadStream(req.hicss).pipe(res)
+        if (sendFile(req.hicss, res)) return
       }
     }
   } catch (e) {
@@ -78,13 +103,8 @@ use((req, res, next) => {
 
 // /_static/path
 use((req, res, next) => {
-  if (/\/_static/.test(req.asPath)) {
-    const fpath = path.join('./', req.asPath)
-    if (fs.existsSync(fpath)) {
-      return fs.createReadStream(fpath).pipe(res)
-    } else {
-      logger.error('No such file:', req.asPath, req.mkcss, req.hicss)
-    }
+  if (req.asPath.startsWith('/_static/')) {
+    if (staticAsset('./_static', req.asPath.slice('/_static/'.length), res)) return
   }
   next()
 })
@@ -112,13 +132,9 @@ use(async (req, res, next) => {
         if(! fileDir.includes(':')){
           // fileDir is unix-like:      /Z/x/y/...., 'Z' means Z:
           // the win-like fileDir should be: Z:\x\y...
-          const cygpath = 'cygpath.exe'
-          const cmd=cygpath+' -w'+' -a '+fileDir ;
-          logger.info('cmd',cmd)
-       
-          const { execSync } = require('node:child_process');
-          const result = execSync(cmd);
-          fileDir=result.toString('utf8').replace('\n','');
+          const { execFileSync } = require('node:child_process')
+          const result = execFileSync('cygpath.exe', ['-w', '-a', fileDir])
+          fileDir = result.toString('utf8').trim()
 
           logger.info('New fileDir',fileDir);
         }  
@@ -130,8 +146,10 @@ use(async (req, res, next) => {
         imgPath = path.join(fileDir, imgPath)
       } else if (!fs.existsSync(imgPath)) {
         let tmpDirPath = fileDir
-        while (tmpDirPath !== '/' && tmpDirPath !== '\\') {
-          tmpDirPath = path.normalize(path.join(tmpDirPath, '..'))
+        while (true) {
+          const parent = path.dirname(tmpDirPath)
+          if (parent === tmpDirPath) break
+          tmpDirPath = parent
           let tmpImgPath = path.join(tmpDirPath, imgPath)
           if (fs.existsSync(tmpImgPath)) {
             imgPath = tmpImgPath
@@ -145,7 +163,7 @@ use(async (req, res, next) => {
         if (imgPath.endsWith('svg')) {
           res.setHeader('content-type', 'image/svg+xml')
         }
-        return fs.createReadStream(imgPath).pipe(res)
+        if (sendFile(imgPath, res)) return
       }
       logger.error('image not exists: ', imgPath)
     }
@@ -156,7 +174,7 @@ use(async (req, res, next) => {
 // 404
 use((req, res) => {
   res.statusCode = 404
-  return fs.createReadStream(path.join('./out', '404.html')).pipe(res)
+  if (!sendFile(path.join('./out', '404.html'), res)) res.end('Preview document or asset not found.')
 })
 
 module.exports = function (req, res, next) {

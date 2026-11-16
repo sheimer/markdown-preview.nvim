@@ -1,311 +1,808 @@
 /*
- * github like style
- * https://github.com/iamcco/markdown.css/blob/master/dest/github/markdown.css
+ * Markdown Preview — switchable light/dark companion palettes
+ *
+ * Bundled default Markdown styles for markdown-preview.nvim.
+ * `data-theme` starts from vim.g.mkdp_theme; the browser controls select
+ * light/dark mode and an independent data-palette. Forest is the default.
  */
 
 :root {
-    --color-text-primary: #333;
-    --color-text-tertiary: #777;
-    --color-text-link: #4078c0;
-    --color-bg-primary: #fff;
-    --color-bg-secondary: #fafbfc;
-    --color-bg-tertiary: #f8f8f8;
-    --color-border-primary: #ddd;
-    --color-border-secondary: #eaecef;
-    --color-border-tertiary: #d1d5da;
-    --color-kbd-foreground: #444d56;
-    --color-markdown-blockquote-border: #dfe2e5;
-    --color-markdown-table-border: #dfe2e5;
-    --color-markdown-table-tr-border: #c6cbd1;
-    --color-markdown-code-bg: #1b1f230d;
-}
-[data-theme="dark"] {
-    --color-text-primary: #c9d1d9;
-    --color-text-tertiary: #8b949e;
-    --color-text-link: #58a6ff;
-    --color-bg-primary: #0d1117;
-    --color-bg-secondary: #0d1117;
-    --color-bg-tertiary: #161b22;
-    --color-border-primary: #30363d;
-    --color-border-secondary: #21262d;
-    --color-border-tertiary: #6e7681;
-    --color-kbd-foreground: #b1bac4;
-    --color-markdown-blockquote-border: #3b434b;
-    --color-markdown-table-border: #3b434b;
-    --color-markdown-table-tr-border: #272c32;
-    --color-markdown-code-bg: #f0f6fc26;
+  --font-sans: "Avenir Next", Avenir, "Segoe UI", Inter, system-ui, sans-serif;
+  --font-mono:
+    "Berkeley Mono", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --ri-alert-line: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIuODY1OSAzLjAwMDE3TDIyLjM5MjIgMTkuNTAwMkMyMi42Njg0IDE5Ljk3ODUgMjIuNTA0NSAyMC41OTAxIDIyLjAyNjIgMjAuODY2MkMyMS44NzQyIDIwLjk1NCAyMS43MDE3IDIxLjAwMDIgMjEuNTI2MiAyMS4wMDAySDIuNDczNjNDMS45MjEzNSAyMS4wMDAyIDEuNDczNjMgMjAuNTUyNSAxLjQ3MzYzIDIwLjAwMDJDMS40NzM2MyAxOS44MjQ2IDEuNTE5ODQgMTkuNjUyMiAxLjYwNzYxIDE5LjUwMDJMMTEuMTMzOSAzLjAwMDE3QzExLjQxIDIuNTIxODcgMTIuMDIxNiAyLjM1OCAxMi40OTk5IDIuNjM0MTRDMTIuNjUxOSAyLjcyMTkxIDEyLjc3ODIgMi44NDgxNSAxMi44NjU5IDMuMDAwMTdaTTQuMjA1NjggMTkuMDAwMkgxOS43OTQxTDExLjk5OTkgNS41MDAxN0w0LjIwNTY4IDE5LjAwMDJaTTEwLjk5OTkgMTYuMDAwMkgxMi45OTk5VjE4LjAwMDJIMTAuOTk5OVYxNi4wMDAyWk0xMC45OTk5IDkuMDAwMTdIMTIuOTk5OVYxNC4wMDAySDEwLjk5OTlWOS4wMDAxN1oiLz48L3N2Zz4=");
+  --ri-checkbox-blank-line: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNCAzSDIwQzIwLjU1MjMgMyAyMSAzLjQ0NzcyIDIxIDRWMjBDMjEgMjAuNTUyMyAyMC41NTIzIDIxIDIwIDIxSDRDMy40NDc3MiAyMSAzIDIwLjU1MjMgMyAyMFY0QzMgMy40NDc3MiAzLjQ0NzcyIDMgNCAzWk01IDVWMTlIMTlWNUg1WiIvPjwvc3ZnPg==");
+  --ri-checkbox-line: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNCAzSDIwQzIwLjU1MjMgMyAyMSAzLjQ0NzcyIDIxIDRWMjBDMjEgMjAuNTUyMyAyMC41NTIzIDIxIDIwIDIxSDRDMy40NDc3MiAyMSAzIDIwLjU1MjMgMyAyMFY0QzMgMy40NDc3MiAzLjQ0NzcyIDMgNCAzWk01IDVWMTlIMTlWNUg1Wk0xMS4wMDI2IDE2TDYuNzU5OTkgMTEuNzU3NEw4LjE3NDIxIDEwLjM0MzFMMTEuMDAyNiAxMy4xNzE2TDE2LjY1OTUgNy41MTQ3MkwxOC4wNzM3IDguOTI4OTNMMTEuMDAyNiAxNloiLz48L3N2Zz4=");
+  --ri-checkbox-fill: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cGF0aCBkPSJNMTkgM2EyIDIgMCAwIDEgMiAydjE0YTIgMiAwIDAgMS0yIDJINWEyIDIgMCAwIDEtMi0yVjVhMiAyIDAgMCAxIDItMmgxNFptLTguMjkzIDEwLjI5My0yLjU4Ni0yLjU4Ni0xLjQxNCAxLjQxNEwxMC43MDcgMTUuMTJsNi41ODYtNi41ODYtMS40MTQtMS40MTQtNS4xNzIgNS4xNzNaIi8+PC9zdmc+");
+  --ri-error-warning-line: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMjJDNi40NzcxNSAyMiAyIDE3LjUyMjggMiAxMkMyIDYuNDc3MTUgNi40NzcxNSAyIDEyIDJDMTcuNTIyOCAyIDIyIDYuNDc3MTUgMjIgMTJDMjIgMTcuNTIyOCAxNy41MjI4IDIyIDEyIDIyWk0xMiAyMEMxNi40MTgzIDIwIDIwIDE2LjQxODMgMjAgMTJDMjAgNy41ODE3MiAxNi40MTgzIDQgMTIgNEM3LjU4MTcyIDQgNCA3LjU4MTcyIDQgMTJDNCAxNi40MTgzIDcuNTgxNzIgMjAgMTIgMjBaTTExIDE1SDEzVjE3SDExVjE1Wk0xMSA3SDEzVjEzSDExVjdaIi8+PC9zdmc+");
+  --ri-external-link-line: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAgNlY4SDVWMTlIMTZWMTRIMThWMjBDMTggMjAuNTUyMyAxNy41NTIzIDIxIDE3IDIxSDRDMy40NDc3MiAyMSAzIDIwLjU1MjMgMyAyMFY3QzMgNi40NDc3MiAzLjQ0NzcyIDYgNCA2SDEwWk0yMSAzVjExSDE5TDE4Ljk5OTkgNi40MTNMMTEuMjA3MSAxNC4yMDcxTDkuNzkyODkgMTIuNzkyOUwxNy41ODQ5IDVIMTNWM0gyMVoiLz48L3N2Zz4=");
+  --ri-information-line: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMjJDNi40NzcxNSAyMiAyIDE3LjUyMjggMiAxMkMyIDYuNDc3MTUgNi40NzcxNSAyIDEyIDJDMTcuNTIyOCAyIDIyIDYuNDc3MTUgMjIgMTJDMjIgMTcuNTIyOCAxNy41MjI4IDIyIDEyIDIyWk0xMiAyMEMxNi40MTgzIDIwIDIwIDE2LjQxODMgMjAgMTJDMjAgNy41ODE3MiAxNi40MTgzIDQgMTIgNEM3LjU4MTcyIDQgNCA3LjU4MTcyIDQgMTJDNCAxNi40MTgzIDcuNTgxNzIgMjAgMTIgMjBaTTExIDdIMTNWOUgxMVY3Wk0xMSAxMUgxM1YxN0gxMVYxMVoiLz48L3N2Zz4=");
+  --ri-lightbulb-flash-line: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNOS45NzMwOCAxOEgxNC4wMjY5QzE0LjE1ODkgMTYuNzk4NCAxNC43NzIxIDE1LjgwNjUgMTUuNzY3NiAxNC43MjI2QzE1Ljg3OTcgMTQuNjAwNiAxNi41OTg4IDEzLjg1NjQgMTYuNjg0MSAxMy43NTAxQzE3LjUzMTggMTIuNjkzMSAxOCAxMS4zODUgMTggMTBDMTggNi42ODYyOSAxNS4zMTM3IDQgMTIgNEM4LjY4NjI5IDQgNiA2LjY4NjI5IDYgMTBDNiAxMS4zODQzIDYuNDY3NzQgMTIuNjkxNyA3LjMxNDYyIDEzLjc0ODRDNy40MDAwNCAxMy44NTUgOC4xMjA4MSAxNC42MDEyIDguMjMxNTQgMTQuNzIxOEM5LjIyNzY2IDE1LjgwNjQgOS44NDEwMyAxNi43OTg0IDkuOTczMDggMThaTTE0IDIwSDEwVjIxSDE0VjIwWk01Ljc1Mzk1IDE0Ljk5OTJDNC42NTY0NSAxMy42Mjk3IDQgMTEuODkxNSA0IDEwQzQgNS41ODE3MiA3LjU4MTcyIDIgMTIgMkMxNi40MTgzIDIgMjAgNS41ODE3MiAyMCAxMEMyMCAxMS44OTI1IDE5LjM0MjggMTMuNjMxNSAxOC4yNDQzIDE1LjAwMTRDMTcuNjI0IDE1Ljc3NDggMTYgMTcgMTYgMTguNVYyMUMxNiAyMi4xMDQ2IDE1LjEwNDYgMjMgMTQgMjNIMTBDOC44OTU0MyAyMyA4IDIyLjEwNDYgOCAyMVYxOC41QzggMTcgNi4zNzQ1OCAxNS43NzM2IDUuNzUzOTUgMTQuOTk5MlpNMTMgMTAuMDA0OEgxNS41TDExIDE2LjAwNDhWMTIuMDA0OEg4LjVMMTMgNlYxMC4wMDQ4WiIvPjwvc3ZnPg==");
+  --ri-link-m: url("data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9ImN1cnJlbnRDb2xvciIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTcuNjU2NyAxNC44Mjg0TDE2LjI0MjUgMTMuNDE0MkwxNy42NTY3IDEyQzE5LjIxODggMTAuNDM3OSAxOS4yMTg4IDcuOTA1MjQgMTcuNjU2NyA2LjM0MzE0QzE2LjA5NDYgNC43ODEwNSAxMy41NjE5IDQuNzgxMDUgMTEuOTk5OCA2LjM0MzE0TDEwLjU4NTYgNy43NTczNkw5LjE3MTM5IDYuMzQzMTRMMTAuNTg1NiA0LjkyODkzQzEyLjkyODcgMi41ODU3OCAxNi43Mjc3IDIuNTg1NzggMTkuMDcwOSA0LjkyODkzQzIxLjQxNCA3LjI3MjA4IDIxLjQxNCAxMS4wNzExIDE5LjA3MDkgMTMuNDE0MkwxNy42NTY3IDE0LjgyODRaTTE0LjgyODIgMTcuNjU2OUwxMy40MTQgMTkuMDcxMUMxMS4wNzA5IDIxLjQxNDIgNy4yNzE4OSAyMS40MTQyIDQuOTI4NzUgMTkuMDcxMUMyLjU4NTYgMTYuNzI3OSAyLjU4NTYgMTIuOTI4OSA0LjkyODc1IDEwLjU4NThMNi4zNDI5NiA5LjE3MTU3TDcuNzU3MTcgMTAuNTg1OEw2LjM0Mjk2IDEyQzQuNzgwODYgMTMuNTYyMSA0Ljc4MDg2IDE2LjA5NDggNi4zNDI5NiAxNy42NTY5QzcuOTA1MDYgMTkuMjE4OSAxMC40Mzc3IDE5LjIxODkgMTEuOTk5OCAxNy42NTY5TDEzLjQxNCAxNi4yNDI2TDE0LjgyODIgMTcuNjU2OVpNMTQuODI4MiA3Ljc1NzM2TDE2LjI0MjUgOS4xNzE1N0w5LjE3MTM5IDE2LjI0MjZMNy43NTcxNyAxNC44Mjg0TDE0LjgyODIgNy43NTczNloiLz48L3N2Zz4=");
 }
 
-.markdown-body ol ol,
-.markdown-body ul ol,
-.markdown-body ol ul,
-.markdown-body ul ul,
-.markdown-body ol ul ol,
-.markdown-body ul ul ol,
-.markdown-body ol ul ul,
-.markdown-body ul ul ul {
+:root {
+  color-scheme: dark;
+  --bg: #2d353b;
+  --surface: #343f44;
+  --surface-raised: #3d484d;
+  --border: #4f5b58;
+  --muted: #9da9a0;
+  --text: #d3c6aa;
+  --heading: #e7d9b8;
+  --green: #a7c080;
+  --aqua: #83c092;
+  --blue: #7fbbb3;
+  --yellow: #dbbc7f;
+  --red: #cf8588;
+  --code: #d699b6;
+  --selection: #543a48;
+}
+
+:root:has(main[data-theme="light"]) {
+  color-scheme: light;
+  --bg: #f3ead3;
+  --surface: #fff8e8;
+  --surface-raised: #fbf1db;
+  --border: #d8cdb4;
+  --muted: #788078;
+  --text: #4b565c;
+  --heading: #3a4a50;
+  --green: #627d55;
+  --aqua: #4f7f6f;
+  --blue: #3d7480;
+  --yellow: #9a6d2f;
+  --red: #ad4d4d;
+  --code: #9a4c73;
+  --selection: #ead4d8;
+}
+
+/* Preview adaptations of Gruvbox, Catppuccin (Mocha/Latte), and GitHub.
+ * Some light accents are darkened for readable text. Keep every token defined. */
+
+:root:has(main[data-palette="gruvbox"][data-theme="dark"]) {
+  --bg: #282828;
+  --surface: #32302f;
+  --surface-raised: #3c3836;
+  --border: #665c54;
+  --muted: #a89984;
+  --text: #ebdbb2;
+  --heading: #fbf1c7;
+  --green: #b8bb26;
+  --aqua: #8ec07c;
+  --blue: #83a598;
+  --yellow: #fabd2f;
+  --red: #fb4934;
+  --code: #d3869b;
+  --selection: #504945;
+}
+
+:root:has(main[data-palette="gruvbox"][data-theme="light"]) {
+  --bg: #fbf1c7;
+  --surface: #f2e5bc;
+  --surface-raised: #ebdbb2;
+  --border: #bdae93;
+  --muted: #7c6f64;
+  --text: #3c3836;
+  --heading: #282828;
+  --green: #79740e;
+  --aqua: #427b58;
+  --blue: #076678;
+  --yellow: #9a6700;
+  --red: #9d0006;
+  --code: #8f3f71;
+  --selection: #d5c4a1;
+}
+
+:root:has(main[data-palette="catppuccin"][data-theme="dark"]) {
+  --bg: #1e1e2e;
+  --surface: #181825;
+  --surface-raised: #313244;
+  --border: #585b70;
+  --muted: #a6adc8;
+  --text: #cdd6f4;
+  --heading: #cdd6f4;
+  --green: #a6e3a1;
+  --aqua: #94e2d5;
+  --blue: #89b4fa;
+  --yellow: #f9e2af;
+  --red: #f38ba8;
+  --code: #cba6f7;
+  --selection: #45475a;
+}
+
+:root:has(main[data-palette="catppuccin"][data-theme="light"]) {
+  --bg: #eff1f5;
+  --surface: #e6e9ef;
+  --surface-raised: #dce0e8;
+  --border: #9ca0b0;
+  --muted: #6c6f85;
+  --text: #4c4f69;
+  --heading: #4c4f69;
+  --green: #3c7a20;
+  --aqua: #157c80;
+  --blue: #1e66f5;
+  --yellow: #946000;
+  --red: #d20f39;
+  --code: #8839ef;
+  --selection: #ccd0da;
+}
+
+:root:has(main[data-palette="github"][data-theme="dark"]) {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-raised: #21262d;
+  --border: #3d444d;
+  --muted: #9198a1;
+  --text: #e6edf3;
+  --heading: #f0f6fc;
+  --green: #7ee787;
+  --aqua: #a5d6ff;
+  --blue: #79c0ff;
+  --yellow: #e3b341;
+  --red: #ff7b72;
+  --code: #d2a8ff;
+  --selection: #264f78;
+}
+
+:root:has(main[data-palette="github"][data-theme="light"]) {
+  --bg: #ffffff;
+  --surface: #f6f8fa;
+  --surface-raised: #eaeef2;
+  --border: #d1d9e0;
+  --muted: #59636e;
+  --text: #1f2328;
+  --heading: #1f2328;
+  --green: #116329;
+  --aqua: #0550ae;
+  --blue: #0969da;
+  --yellow: #7d4e00;
+  --red: #cf222e;
+  --code: #8250df;
+  --selection: #ddf4ff;
+}
+
+/* Scope tokens at the root so the outer page and native controls follow too. */
+html,
+body,
+#__next {
+  background: var(--bg);
+  overflow-anchor: none;
+}
+
+/* Keep the browser chrome understated without changing the scroll container. */
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg);
+}
+
+main {
+  background: var(--bg);
+}
+
+/* A single framed document: header at the top, rounded corners at the end. */
+#page-ctn {
+  width: calc(100% - 2.5rem);
+  max-width: 64rem;
+  min-height: calc(100vh - 3rem);
+  margin: 1.5rem auto;
+  /* Clip rounded corners without creating a scroll container for the header. */
+  overflow: clip;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--bg);
+  box-shadow: 0 0.55rem 1.6rem rgb(0 0 0 / 14%);
+}
+#page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-sizing: border-box;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0;
+  padding: 0.55rem 0.85rem;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--muted);
+  background: var(--surface-raised);
+  box-shadow: none;
+}
+#page-header h3 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font: 600 0.8rem/1.5 var(--font-sans);
+  letter-spacing: 0.01em;
+}
+#preview-controls,
+#palette-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+#preview-controls {
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  font: 600 0.75rem/1.5 var(--font-sans);
+}
+#preview-palette {
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+}
+#preview-palette:focus-visible,
+#toggle-theme input:focus-visible {
+  outline: 2px solid var(--aqua);
+  outline-offset: 3px;
+}
+#toggle-theme {
+  height: 1.1rem;
+  color: var(--green);
+  font: 600 0.68rem/1.1rem var(--font-sans);
+  white-space: nowrap;
+}
+#toggle-theme input {
+  width: 0.72rem;
+  height: 0.72rem;
+  margin: 0 0.18rem 0 0;
+  accent-color: var(--green);
+}
+
+.markdown-body {
+  box-sizing: border-box;
+  max-width: none;
+  min-height: calc(100vh - 6rem);
+  margin: 0;
+  padding: 3rem 3rem 6rem;
+  color: var(--text);
+  background: var(--bg);
+  font: 17px/1.75 var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+@media (max-width: 42rem) {
+  .markdown-body {
+    padding: 2rem 2.5rem 4rem;
+    font-size: 16px;
+  }
+}
+
+.markdown-body ::selection {
+  color: var(--text);
+  background: var(--selection);
+}
+.markdown-body > :first-child {
   margin-top: 0;
+}
+.markdown-body > :last-child {
   margin-bottom: 0;
 }
-.markdown-body {
-  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  font-size: 16px;
-  color: var(--color-text-primary);
-  line-height: 1.6;
-  word-wrap: break-word;
-  padding: 45px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-primary);
-  -webkit-border-radius: 0 0 3px 3px;
-  border-radius: 0 0 3px 3px;
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0 0 1.25rem;
 }
-.markdown-body > *:first-child {
-  margin-top: 0 !important;
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.7rem;
 }
-.markdown-body > *:last-child {
-  margin-bottom: 0 !important;
+.markdown-body li + li {
+  margin-top: 0.35rem;
 }
-.markdown-body .table-of-contents ol {
-  list-style: none;
+.markdown-body li::marker {
+  color: var(--green);
 }
-.markdown-body .table-of-contents > ol {
-  padding-left: 0;
-}
-.markdown-body * {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-}
+
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3,
 .markdown-body h4,
 .markdown-body h5,
 .markdown-body h6 {
-  margin-top: 1em;
-  margin-bottom: 16px;
-  font-weight: bold;
-  line-height: 1.4;
+  position: relative;
+  margin: 2.4em 0 0.75em;
+  color: var(--heading);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
 }
-.markdown-body h1 .anchor,
-.markdown-body h2 .anchor,
-.markdown-body h3 .anchor,
-.markdown-body h4 .anchor,
-.markdown-body h5 .anchor,
-.markdown-body h6 .anchor {
-  margin-left: -24px;
-  visibility: hidden;
+.markdown-body h1 {
+  margin-top: 0;
+  font-size: 2.35em;
+}
+.markdown-body h2 {
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.7em;
+}
+.markdown-body h3 {
+  font-size: 1.32em;
+}
+.markdown-body h4 {
+  font-size: 1.1em;
+}
+.markdown-body h5,
+.markdown-body h6 {
+  font-size: 0.95em;
+  color: var(--muted);
+}
+.markdown-body .anchor {
+  position: absolute;
+  left: -0.6rem;
+  width: 0.78em;
+  height: 0.78em;
+  margin: 0.18em 0 0;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateX(-100%);
+  font-size: 0.8em;
 }
 .markdown-body h1:hover .anchor,
 .markdown-body h2:hover .anchor,
-.markdown-body h3:hover .anchor,
-.markdown-body h4:hover .anchor,
-.markdown-body h5:hover .anchor,
-.markdown-body h6:hover .anchor {
-  visibility: visible;
+.markdown-body h3:hover .anchor {
+  opacity: 1;
 }
-.markdown-body p,
-.markdown-body blockquote,
-.markdown-body ul,
-.markdown-body ol,
-.markdown-body dl,
-.markdown-body table,
-.markdown-body pre {
-  margin-top: 0;
-  margin-bottom: 16px;
-}
-.markdown-body h1 {
-  margin: 0.67em 0;
-  padding-bottom: 0.3em;
-  font-size: 2.25em;
-  line-height: 1.2;
-  border-bottom: 1px solid var(--color-border-secondary);
-}
-.markdown-body h2 {
-  padding-bottom: 0.3em;
-  font-size: 1.75em;
-  line-height: 1.225;
-  border-bottom: 1px solid var(--color-border-secondary);
-}
-.markdown-body h3 {
-  font-size: 1.5em;
-  line-height: 1.43;
-}
-.markdown-body h4 {
-  font-size: 1.25em;
-}
-.markdown-body h5 {
-  font-size: 1em;
-}
-.markdown-body h6 {
-  font-size: 1em;
-  color: var(--color-text-tertiary);
-}
-.markdown-body hr {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  height: 0;
-  border: 0;
-  border-top: 1px solid var(--color-border-primary);
-}
-.markdown-body ol,
-.markdown-body ul {
-  padding-left: 2em;
-}
-.markdown-body ol ol,
-.markdown-body ul ol {
-  list-style-type: lower-roman;
-}
-.markdown-body ol ul,
-.markdown-body ul ul {
-  list-style-type: circle;
-}
-.markdown-body ol ul ul,
-.markdown-body ul ul ul {
-  list-style-type: square;
-}
-.markdown-body ol {
-  list-style-type: decimal;
-}
-.markdown-body ul {
-  list-style-type: disc;
-}
-.markdown-body dl {
-  margin-bottom: 1.3em
-}
-.markdown-body dl dt {
-  font-weight: 700;
-}
-.markdown-body dl dd {
-  margin-left: 0;
-}
-.markdown-body dl dd p {
-  margin-bottom: 0.8em;
-}
-.markdown-body blockquote {
-  margin-left: 0;
-  margin-right: 0;
-  padding: 0 15px;
-  color: var(--color-text-tertiary);
-  border-left: 4px solid var(--color-markdown-blockquote-border);
-}
-.markdown-body table {
-  display: block;
-  width: 100%;
-  overflow: auto;
-  word-break: normal;
-  word-break: keep-all;
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-.markdown-body table tr {
-  background-color: var(--color-bg-primary);
-  border-top: 1px solid var(--color-markdown-table-tr-border);
-}
-.markdown-body table tr:nth-child(2n) {
-  background-color: var(--color-bg-tertiary);
-}
-.markdown-body table th,
-.markdown-body table td {
-  padding: 6px 13px;
-  border: 1px solid var(--color-markdown-table-border);
-  vertical-align: top;
-}
-.markdown-body kbd {
-  display: inline-block;
-  padding: 5px 6px;
-  font: 14px SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
-  line-height: 10px;
-  color: var(--color-kbd-foreground);
-  vertical-align: middle;
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-tertiary);
-  border-radius: 3px;
-  box-shadow: inset 0 -1px 0 var(--color-border-tertiary);
-}
-.markdown-body pre {
-  word-wrap: normal;
-  padding: 16px;
-  overflow: auto;
-  font-size: 85%;
-  line-height: 1.45;
-  background-color: var(--color-bg-tertiary);
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-}
-.markdown-body pre code {
-  display: inline;
-  max-width: initial;
-  padding: 0;
-  margin: 0;
-  overflow: initial;
-  font-size: 100%;
-  line-height: inherit;
-  word-wrap: normal;
-  white-space: pre;
-  border: 0;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-  background-color: transparent;
-}
-.markdown-body pre code:before,
-.markdown-body pre code:after {
-  content: normal;
-}
-.markdown-body code {
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  padding: 0;
-  padding-top: 0.2em;
-  padding-bottom: 0.2em;
-  margin: 0;
-  font-size: 85%;
-  background-color: var(--color-markdown-code-bg);
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-}
-.markdown-body code:before,
-.markdown-body code:after {
-  letter-spacing: -0.2em;
-  content: "\00a0";
-}
+
 .markdown-body a {
-  color: var(--color-text-link);
+  color: var(--aqua);
   text-decoration: none;
-  background: transparent;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
 }
-.markdown-body img {
-  max-width: 100%;
-  max-height: 100%;
+.markdown-body a:hover {
+  color: var(--green);
+  text-decoration: underline;
+}
+.ri-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  background: currentColor;
+  vertical-align: -0.12em;
+  -webkit-mask: var(--ri-icon) center / contain no-repeat;
+  mask: var(--ri-icon) center / contain no-repeat;
+}
+.ri-link-m {
+  --ri-icon: var(--ri-link-m);
+}
+.ri-information-line {
+  --ri-icon: var(--ri-information-line);
+}
+.ri-lightbulb-flash-line {
+  --ri-icon: var(--ri-lightbulb-flash-line);
+}
+.ri-error-warning-line {
+  --ri-icon: var(--ri-error-warning-line);
+}
+.ri-alert-line {
+  --ri-icon: var(--ri-alert-line);
 }
 .markdown-body strong {
-  font-weight: bold;
+  color: var(--heading);
+  font-weight: 700;
 }
-.markdown-body em {
-  font-style: italic;
+.markdown-body em,
+.markdown-body strong em,
+.markdown-body em strong {
+  color: inherit;
 }
 .markdown-body del {
-  text-decoration: line-through;
+  color: var(--muted);
 }
-.task-list-item {
+.markdown-body hr {
+  height: 1px;
+  margin: 2.5rem 0;
+  border: 0;
+  background: var(--border);
+}
+
+.markdown-body code {
+  padding: 0.16em 0.38em;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  border-radius: 0.32rem;
+  color: var(--code);
+  background: var(--surface);
+  font: 0.86em/1.45 var(--font-mono);
+}
+.markdown-body pre {
+  overflow: auto;
+  max-height: 34rem;
+  margin: 1.4rem 0;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  box-shadow: 0 0.4rem 1.2rem rgb(0 0 0 / 8%);
+}
+.markdown-body pre code {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 0.84em;
+}
+.markdown-body pre.hljs {
+  position: relative;
+  padding-top: 2.45rem;
+}
+.markdown-body pre.hljs::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0.65rem;
+  left: 0.9rem;
+  color: var(--muted);
+  font: 700 0.67rem/1 var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.markdown-body blockquote {
+  margin: 1.5rem 0;
+  padding: 0.2rem 1.2rem;
+  border-left: 0.25rem solid var(--green);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.markdown-body blockquote > :last-child {
+  margin-bottom: 0.5rem;
+}
+.markdown-body blockquote.md-callout {
+  padding: 0.9rem 1.05rem;
+  border: 1px solid var(--border);
+  border-left: 0.28rem solid var(--blue);
+  border-radius: 0.5rem;
+  color: var(--text);
+  background: var(--surface);
+}
+.markdown-body .md-callout-title {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+  color: var(--blue);
+  font-weight: 750;
+}
+.markdown-body .md-callout-title .ri-icon {
+  align-self: center;
+}
+.markdown-body blockquote.md-callout-note {
+  border-left-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 9%, var(--surface));
+}
+.markdown-body blockquote.md-callout-tip {
+  border-left-color: var(--green);
+  background: color-mix(in srgb, var(--green) 9%, var(--surface));
+}
+.markdown-body .md-callout-tip .md-callout-title {
+  color: var(--green);
+}
+.markdown-body blockquote.md-callout-important {
+  border-left-color: var(--code);
+  background: color-mix(in srgb, var(--code) 9%, var(--surface));
+}
+.markdown-body .md-callout-important .md-callout-title {
+  color: var(--code);
+}
+.markdown-body blockquote.md-callout-warning {
+  border-left-color: var(--yellow);
+  background: color-mix(in srgb, var(--yellow) 10%, var(--surface));
+}
+.markdown-body .md-callout-warning .md-callout-title {
+  color: var(--yellow);
+}
+.markdown-body blockquote.md-callout-caution {
+  border-left-color: var(--red);
+  background: color-mix(in srgb, var(--red) 10%, var(--surface));
+}
+.markdown-body .md-callout-caution .md-callout-title {
+  color: var(--red);
+}
+
+.markdown-body .md-table-scroll {
+  max-width: 100%;
+  max-height: 70vh;
+  margin: 1.5rem 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  scrollbar-width: auto;
+  scrollbar-color: var(--muted) var(--surface);
+}
+.markdown-body .md-table-scroll:focus-visible {
+  outline: 2px solid var(--aqua);
+  outline-offset: 3px;
+}
+.markdown-body table {
+  display: table;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 1.5rem 0;
+  border-spacing: 0;
+  border-collapse: separate;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+}
+.markdown-body .md-table-scroll > table {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.markdown-body .md-table-scroll th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+/* Raw HTML tables do not pass through markdown-it's table renderer. */
+.markdown-body table:not(.md-table-scroll > table) {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+}
+@media print {
+  #page-header {
+    position: static;
+  }
+  .markdown-body .md-table-scroll,
+  .markdown-body table:not(.md-table-scroll > table) {
+    max-height: none;
+    overflow: visible;
+  }
+  .markdown-body .md-table-scroll th {
+    position: static;
+  }
+}
+.markdown-body th,
+.markdown-body td {
+  padding: 0.6rem 0.8rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.markdown-body th {
+  color: var(--heading);
+  background: var(--surface-raised);
+  font-weight: 650;
+}
+.markdown-body tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface) 52%, transparent);
+}
+.markdown-body tr:last-child td {
+  border-bottom: 0;
+}
+.markdown-body th:last-child,
+.markdown-body td:last-child {
+  border-right: 0;
+}
+
+/* markdown-it-toc-done-right, bundled with markdown-preview.nvim. */
+.markdown-body .table-of-contents {
+  max-width: 42rem;
+  margin: 1.5rem 0 2rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-left: 0.25rem solid var(--green);
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--green) 5%, var(--surface));
+}
+.markdown-body .table-of-contents::before {
+  content: "Contents";
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--heading);
+  font-weight: 700;
+}
+.markdown-body .table-of-contents ul {
+  margin: 0.3rem 0;
+  padding-left: 1.25rem;
+}
+.markdown-body .table-of-contents li {
+  margin: 0.2rem 0;
+}
+.markdown-body .table-of-contents a::before,
+.markdown-body sup.footnote-ref a::before {
+  content: none;
+}
+
+.markdown-body img {
+  display: block;
+  max-width: 100%;
+  margin: 1.5rem auto;
+  border-radius: 0.45rem;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 16%);
+}
+.markdown-body input[type="checkbox"] {
+  width: 1.3em;
+  height: 1.3em;
+  margin: 0 0.45em 0 -0.1em;
+  appearance: none;
+  background: var(--muted);
+  vertical-align: 0.02em;
+  -webkit-mask: var(--ri-checkbox-blank-line) center / contain no-repeat;
+  mask: var(--ri-checkbox-blank-line) center / contain no-repeat;
+  filter: drop-shadow(0 0 0.02em currentColor);
+}
+.markdown-body input[type="checkbox"]:checked {
+  background: var(--green);
+  -webkit-mask-image: var(--ri-checkbox-fill);
+  mask-image: var(--ri-checkbox-fill);
+}
+.markdown-body input[type="checkbox"]:disabled {
+  opacity: 1;
+}
+.markdown-body .task-list-item > input[type="checkbox"],
+.markdown-body .task-list-item > p > input[type="checkbox"] {
+  /* markdown-it emits a whitespace text node after the input.  It provides
+   * the natural text gap, so an additional right margin would push task text
+   * farther right than text in an ordinary list item. */
+  margin-left: -1.55em;
+  margin-right: 0;
+  /* A positive vertical-align raises an inline element; lower this larger
+   * glyph slightly to sit on the text baseline. */
+  vertical-align: -0.17em;
+}
+.markdown-body kbd {
+  padding: 0.12em 0.38em;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 0.3rem;
+  color: var(--heading);
+  background: var(--surface-raised);
+  font: 0.8em var(--font-mono);
+}
+.markdown-body .task-list-item {
   list-style-type: none;
 }
-.task-list-item input {
-  font: 13px/1.4 Helvetica, arial, nimbussansl, liberationsans, freesans, clean, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  margin: 0 0.35em 0.25em -1.6em;
-  vertical-align: middle;
+.markdown-body .task-list-item::marker {
+  content: "";
 }
-.task-list-item input[disabled] {
-  cursor: default;
+
+/* Mermaid writes its initial theme into the SVG. These overrides also react
+ * when markdown-preview's header switch changes `data-theme` in the browser. */
+.markdown-body .mermaid {
+  margin: 1.75rem 0;
+  color: var(--text);
 }
-.task-list-item input[type="checkbox"] {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  padding: 0;
+.markdown-body .mermaid svg {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  background: var(--surface) !important;
 }
-.task-list-item input[type="radio"] {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  padding: 0;
+.markdown-body .mermaid .node rect,
+.markdown-body .mermaid .node circle,
+.markdown-body .mermaid .node ellipse,
+.markdown-body .mermaid .node polygon,
+.markdown-body .mermaid .node path {
+  fill: var(--surface-raised) !important;
+  stroke: var(--green) !important;
+}
+.markdown-body .mermaid .nodeLabel,
+.markdown-body .mermaid .label,
+.markdown-body .mermaid text {
+  color: var(--text) !important;
+  fill: var(--text) !important;
+}
+.markdown-body .mermaid foreignObject div,
+.markdown-body .mermaid foreignObject span {
+  color: var(--text) !important;
+}
+.markdown-body .mermaid .edgePath path,
+.markdown-body .mermaid .flowchart-link {
+  stroke: var(--aqua) !important;
+}
+.markdown-body .mermaid marker path {
+  fill: var(--aqua) !important;
+  stroke: var(--aqua) !important;
+}
+.markdown-body .mermaid .cluster rect {
+  fill: var(--surface) !important;
+  stroke: var(--border) !important;
+}
+.markdown-body .mermaid .edgeLabel rect {
+  fill: var(--surface-raised) !important;
+  stroke: var(--border) !important;
+}
+.markdown-body .mermaid .edgeLabel span.edgeLabel:not(:empty) {
+  display: inline-block !important;
+  padding: 0.15rem 0.42rem !important;
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  color: var(--text) !important;
+  background: var(--surface-raised) !important;
+  font: 600 0.78rem/1.2 var(--font-sans);
+}
+.markdown-body .mermaid .edgeLabel span.edgeLabel:empty {
+  display: none !important;
+}
+
+/* Sequence diagrams */
+.markdown-body .mermaid rect.actor,
+.markdown-body .mermaid rect.note {
+  fill: var(--surface-raised) !important;
+  stroke: var(--green) !important;
+}
+.markdown-body .mermaid .actor-line {
+  stroke: var(--border) !important;
+}
+.markdown-body .mermaid .messageLine0,
+.markdown-body .mermaid .messageLine1 {
+  stroke: var(--aqua) !important;
+}
+.markdown-body .mermaid .messageText,
+.markdown-body .mermaid .noteText,
+.markdown-body .mermaid .labelText,
+.markdown-body .mermaid text.actor {
+  color: var(--text) !important;
+  fill: var(--text) !important;
+}
+.markdown-body .mermaid text.actor > tspan,
+.markdown-body .mermaid .messageText > tspan,
+.markdown-body .mermaid .noteText > tspan,
+.markdown-body .mermaid .labelText > tspan {
+  fill: var(--text) !important;
+}
+
+/* Entity relationship diagrams */
+.markdown-body .mermaid .er.entityBox,
+.markdown-body .mermaid .er.relationshipLabelBox {
+  fill: var(--surface-raised) !important;
+  stroke: var(--green) !important;
+}
+.markdown-body .mermaid .er.attributeBoxOdd {
+  fill: var(--surface) !important;
+  stroke: var(--green) !important;
+}
+.markdown-body .mermaid .er.attributeBoxEven {
+  fill: var(--surface-raised) !important;
+  stroke: var(--green) !important;
+}
+.markdown-body .mermaid .er.entityLabel,
+.markdown-body .mermaid .er.relationshipLabel {
+  fill: var(--text) !important;
+}
+.markdown-body .mermaid .er.relationshipLine {
+  stroke: var(--aqua) !important;
+}
+.markdown-body .mermaid .er.relationshipLabelBox {
+  /* Mermaid sizes this SVG rect exactly to its text; the matching stroke adds
+   * visual breathing room without changing its calculated diagram layout. */
+  stroke: var(--surface-raised) !important;
+  stroke-width: 0.45rem;
+}
+.markdown-body .mermaid marker circle {
+  fill: var(--surface-raised) !important;
+  stroke: var(--aqua) !important;
+}
+
+/* Keep the link affordance subtle and do not duplicate heading anchor icons. */
+.markdown-body
+  a:not(.anchor):not(.footnote-ref):not(.footnote-backref)::before {
+  content: "";
+  display: inline-block;
+  width: 0.78em;
+  height: 0.78em;
+  margin-right: 0.2em;
+  background: currentColor;
+  vertical-align: -0.08em;
+  -webkit-mask: var(--ri-external-link-line) center / contain no-repeat;
+  mask: var(--ri-external-link-line) center / contain no-repeat;
+  text-decoration: none;
+}
+.markdown-body .table-of-contents a::before,
+.markdown-body sup.footnote-ref a::before {
+  content: none !important;
+}
+
+/* Keep fragment targets visible below the sticky controls. */
+.markdown-body :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: 6rem;
 }

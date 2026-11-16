@@ -1,105 +1,52 @@
-/*
+/* Highlight.js colours for the Forestbones / Everforest preview theme. */
 
-github.com style (c) Vasily Polovnyov <vast@whiteants.net>
-
-*/
-:root {
-    --color-text-primary: #333;
-}
-[data-theme="dark"] {
-    --color-text-primary: #c9d1d9;
-}
-
-.hljs {
+.markdown-body .hljs {
   display: block;
   overflow-x: auto;
-  padding: 0.5em;
-  color: var(--color-text-primary);
-  background: #f8f8f8;
+  color: var(--text);
+  background: transparent;
 }
 
-.hljs-comment,
-.hljs-quote {
-  color: #998;
-  font-style: italic;
-}
+.markdown-body .hljs-comment,
+.markdown-body .hljs-quote { color: var(--muted); font-style: italic; }
 
-.hljs-keyword,
-.hljs-selector-tag,
-.hljs-subst {
-  color: var(--color-text-primary);
-  font-weight: bold;
-}
+.markdown-body .hljs-keyword,
+.markdown-body .hljs-selector-tag,
+.markdown-body .hljs-type { color: var(--red); font-weight: 700; }
 
-.hljs-number,
-.hljs-literal,
-.hljs-variable,
-.hljs-template-variable,
-.hljs-tag .hljs-attr {
-  color: #008080;
-}
+.markdown-body .hljs-title,
+.markdown-body .hljs-title.function_,
+.markdown-body .hljs-section,
+.markdown-body .hljs-selector-id { color: var(--blue); font-weight: 700; }
+.markdown-body .hljs-attr { color: var(--blue); }
 
-.hljs-string,
-.hljs-doctag {
-  color: #d14;
-}
+.markdown-body .hljs-regexp,
+.markdown-body .hljs-template-variable { color: var(--aqua); }
 
-.hljs-title,
-.hljs-section,
-.hljs-selector-id {
-  color: #900;
-  font-weight: bold;
-}
+.markdown-body .hljs-string,
+.markdown-body .hljs-doctag { color: var(--green); }
 
-.hljs-subst {
-  font-weight: normal;
-}
+.markdown-body .hljs-literal,
+.markdown-body .hljs-built_in,
+.markdown-body .hljs-builtin-name { color: var(--yellow); }
 
-.hljs-type,
-.hljs-class .hljs-title {
-  color: #458;
-  font-weight: bold;
-}
+.markdown-body .hljs-number,
+.markdown-body .hljs-symbol,
+.markdown-body .hljs-bullet,
+.markdown-body .hljs-variable,
+.markdown-body .hljs-params { color: var(--yellow); }
 
-.hljs-tag,
-.hljs-name,
-.hljs-attribute {
-  color: #000080;
-  font-weight: normal;
-}
+.markdown-body .hljs-function,
+.markdown-body .hljs-class .hljs-title,
+.markdown-body .hljs-property { color: var(--code); }
 
-.hljs-regexp,
-.hljs-link {
-  color: #009926;
-}
+.markdown-body .hljs-subst,
+.markdown-body .hljs-punctuation,
+.markdown-body .hljs-operator { color: var(--text); }
 
-.hljs-symbol,
-.hljs-bullet {
-  color: #990073;
-}
+.markdown-body .hljs-meta { color: var(--muted); font-weight: 700; }
 
-.hljs-built_in,
-.hljs-builtin-name {
-  color: #0086b3;
-}
-
-.hljs-meta {
-  color: #999;
-  font-weight: bold;
-}
-
-.hljs-deletion {
-  background: #fdd;
-}
-
-.hljs-addition {
-  background: #dfd;
-}
-
-.hljs-emphasis {
-  font-style: italic;
-}
-
-.hljs-strong {
-  font-weight: bold;
-}
+.markdown-body .hljs-addition { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
+.markdown-body .hljs-deletion { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+.markdown-body .hljs-emphasis { font-style: italic; }
+.markdown-body .hljs-strong { font-weight: 700; }

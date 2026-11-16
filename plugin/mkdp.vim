@@ -1,3 +1,13 @@
+" Neovim is the supported editor for this independently maintained fork.
+if !has('nvim-0.10')
+  echoerr 'markdown-preview.nvim requires Neovim 0.10 or newer'
+  finish
+endif
+if exists('g:loaded_markdown_preview')
+  finish
+endif
+let g:loaded_markdown_preview = 1
+
 " set to 1, the vim will open the preview window once enter the markdown
 " buffer
 if !exists('g:mkdp_auto_start')
@@ -8,10 +18,9 @@ endif
 " set to 1, the vim will auto open preview window when you edit the
 " markdown file
 
-" set to 1, the vim will auto close current preview window when change
-" from markdown buffer to another buffer
+" Buffer switches leave independent previews open; retained for old configs.
 if !exists('g:mkdp_auto_close')
-  let g:mkdp_auto_close = 1
+  let g:mkdp_auto_close = 0
 endif
 
 " set to 1, the vim will just refresh markdown when save the buffer or
@@ -89,6 +98,10 @@ if !exists('g:mkdp_port')
   let g:mkdp_port = ''
 endif
 
+if !exists('g:mkdp_theme')
+  let g:mkdp_theme = &background
+endif
+
 " preview page title
 " ${name} will be replace with the file name
 if !exists('g:mkdp_page_title')
@@ -105,7 +118,7 @@ if !exists('g:mkdp_images_path')
   let g:mkdp_images_path = ''
 endif
 
-" combine preview window
+" Retained for configuration compatibility; this fork uses independent previews.
 if !exists('g:mkdp_combine_preview')
   let g:mkdp_combine_preview = 0
 endif
@@ -119,34 +132,14 @@ endif
 " if there are any active preview client
 let g:mkdp_clients_active = 0
 
-function! s:init_command() abort
-  command! -buffer MarkdownPreview call mkdp#util#open_preview_page()
-  command! -buffer MarkdownPreviewStop call mkdp#util#stop_preview()
-  command! -buffer MarkdownPreviewToggle call mkdp#util#toggle_preview()
-  " mapping for user
-  noremap <buffer> <silent> <Plug>MarkdownPreview :MarkdownPreview<CR>
-  inoremap <buffer> <silent> <Plug>MarkdownPreview <Esc>:MarkdownPreview<CR>a
-  noremap <buffer> <silent> <Plug>MarkdownPreviewStop :MarkdownPreviewStop<CR>
-  inoremap <buffer> <silent> <Plug>MarkdownPreviewStop <Esc>:MarkdownPreviewStop<CR>a
-  nnoremap <buffer> <silent> <Plug>MarkdownPreviewToggle :MarkdownPreviewToggle<CR>
-  inoremap <buffer> <silent> <Plug>MarkdownPreviewToggle <Esc>:MarkdownPreviewToggle<CR>
-endfunction
-
-function! s:init() abort
-  augroup mkdp_init
-    autocmd!
-    if g:mkdp_command_for_global
-      autocmd BufEnter * :call s:init_command()
-    else
-      autocmd BufEnter,FileType * if index(g:mkdp_filetypes, &filetype) !=# -1 | call s:init_command() | endif
-    endif
-    if g:mkdp_auto_start
-      execute 'autocmd BufEnter *.{md,mkd,mdown,mkdn,mdwn,' . join(g:mkdp_filetypes, ',') . '} call mkdp#util#open_preview_page()'
-    endif
-    if g:mkdp_combine_preview && g:mkdp_combine_preview_auto_refresh
-      execute 'autocmd BufEnter *.{md,mkd,mdown,mkdn,mdwn,' . join(g:mkdp_filetypes, ',') . '} call mkdp#util#combine_preview_refresh()'
-    endif
-  augroup END
-endfunction
-
-call s:init()
+" Commands and lifecycle live in Lua; the plugin works without a setup call.
+command! MarkdownPreview lua require('markdown_preview').open()
+command! MarkdownPreviewStop lua require('markdown_preview').close()
+command! MarkdownPreviewToggle lua require('markdown_preview').toggle()
+nnoremap <silent> <Plug>MarkdownPreview :MarkdownPreview<CR>
+inoremap <silent> <Plug>MarkdownPreview <Esc>:MarkdownPreview<CR>a
+nnoremap <silent> <Plug>MarkdownPreviewStop :MarkdownPreviewStop<CR>
+inoremap <silent> <Plug>MarkdownPreviewStop <Esc>:MarkdownPreviewStop<CR>a
+nnoremap <silent> <Plug>MarkdownPreviewToggle :MarkdownPreviewToggle<CR>
+inoremap <silent> <Plug>MarkdownPreviewToggle <Esc>:MarkdownPreviewToggle<CR>a
+lua require('markdown_preview').setup()

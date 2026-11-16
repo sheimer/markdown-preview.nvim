@@ -8,6 +8,39 @@ const use = function (route) {
   routes.unshift((req, res, next) => () => route(req, res, next))
 }
 
+// Real links preserve the browser's tab/window actions without popup scripts.
+use(async (req, res, next) => {
+  const match = /^\/_markdown_link\/(\d+)\/(.+)$/.exec(req.asPath)
+  if (!match) return next()
+  res.setHeader('Cache-Control', 'no-store')
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  if (req.method !== 'GET') {
+    res.statusCode = 405
+    res.setHeader('Allow', 'GET')
+    return res.end('Open document links with GET.')
+  }
+  try {
+    // Decode the route wrapper, then Markdown's URL-encoded filename.
+    const filename = decodeURIComponent(decodeURIComponent(match[2]))
+    const result = await req.plugin.nvim.call('luaeval', [
+      "require('markdown_preview').resolve_link(_A[1], _A[2])",
+      [Number(match[1]), filename]
+    ])
+    if (!result.bufnr) {
+      res.statusCode = 404
+      return res.end(result.error || 'Cannot open this Markdown document.')
+    }
+    // Browsers carry the original #fragment through this redirect.
+    res.statusCode = 302
+    res.setHeader('Location', '/page/' + result.bufnr)
+    res.end()
+  } catch (error) {
+    logger.error('Markdown document link failed: ', error)
+    res.statusCode = 400
+    res.end('Cannot open this Markdown document. Check the link and the messages in Neovim.')
+  }
+})
+
 // /page/:number
 use((req, res, next) => {
   if (/\/page\/\d+/.test(req.asPath)) {

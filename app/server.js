@@ -25,11 +25,9 @@ exports.run = function () {
   }
 
   const update_clients_active_var = () => {
-    if (Object.values(clients).some(cs => cs.some(c => c.connected))) {
-      plugin.nvim.setVar('mkdp_clients_active', 1)
-    } else {
-      plugin.nvim.setVar('mkdp_clients_active', 0)
-    }
+    const active = Object.keys(clients).filter(bufnr => clients[bufnr].some(c => c.connected)).map(Number)
+    plugin.nvim.setVar('mkdp_preview_buffers', active)
+    plugin.nvim.setVar('mkdp_clients_active', active.length ? 1 : 0)
   }
 
   // http server
@@ -55,6 +53,21 @@ exports.run = function () {
     const { handshake = { query: {} } } = client
     const bufnr = handshake.query.bufnr
 
+    // Register before awaiting RPC calls, including a disconnect during loading.
+    client.on('disconnect', function () {
+      logger.info('disconnect: ', client.id)
+      clients[bufnr] = (clients[bufnr] || []).filter(c => c.id !== client.id)
+      // update vim variable
+      update_clients_active_var();
+    })
+    const requested = await plugin.nvim.call('getbufvar', [Number(bufnr), 'mkdp_preview_requested', 1])
+    const loaded = await plugin.nvim.call('bufloaded', [Number(bufnr)])
+    if (!Number(requested) || !loaded) {
+      client.emit('close_page')
+      return
+    }
+    if (!client.connected) return
+    plugin.nvim.call('setbufvar', [Number(bufnr), 'mkdp_preview_pending', 0])
     logger.info('client connect: ', client.id, bufnr)
 
     clients[bufnr] = clients[bufnr] || []
@@ -88,13 +101,6 @@ exports.run = function () {
         })
       }
     })
-
-    client.on('disconnect', function () {
-      logger.info('disconnect: ', client.id)
-      clients[bufnr] = (clients[bufnr] || []).map(c => c.id !== client.id)
-      // update vim variable
-      update_clients_active_var();
-    })
   })
 
   async function startServer () {
@@ -124,6 +130,7 @@ exports.run = function () {
           }
           return true
         })
+        update_clients_active_var()
       }
       function closeAllPages () {
         logger.info('close all pages')
@@ -135,8 +142,11 @@ exports.run = function () {
           })
         })
         clients = {}
+        update_clients_active_var()
       }
       async function openBrowser ({ bufnr }) {
+        const requested = await plugin.nvim.call('getbufvar', [Number(bufnr), 'mkdp_preview_requested', 1])
+        if (!Number(requested) || (clients[bufnr] || []).some(c => c.connected)) return
         const combinePreview = await plugin.nvim.getVar('mkdp_combine_preview')
         if (combinePreview && Object.values(clients).some(cs => cs.some(c => c.connected))) {
           logger.info(`combine preview page: `, bufnr)
@@ -177,7 +187,8 @@ exports.run = function () {
         openBrowser
       })
 
-      plugin.nvim.call('mkdp#util#open_browser')
+      // The Lua adapter queues explicit buffer IDs while this server starts.
+      plugin.nvim.setVar('mkdp_preview_ready', 1)
     })
   }
 

@@ -134,15 +134,21 @@ npm test
 MKDP_TEST_BROWSER=firefox npm test
 ```
 
+The frontend uses esbuild with React 16 and the existing Markdown/diagram stack.
+It emits a static HTML shell and content-hashed browser bundle; no Next.js server
+or OpenSSL legacy-provider option is needed. `npm run build-app` rebuilds only the
+frontend; `npm run build-lib` rebuilds the Node server helpers. The full build
+remains `npm run build`.
+
 The browser suite runs a minimal Neovim instance with temporary documents,
 isolated state directories and isolated browser contexts. See
 [validation](docs/validation.md) for the completed checks, exact commands and
 remaining limits. Fixtures are in [fixtures](fixtures).
 
 Build and generated-asset policy, dependency follow-up and release gates are in
-[maintenance](docs/maintenance.md). This baseline deliberately retains the old
-Next.js/React renderer; dependency modernization and executable bundles are
-separate follow-up work.
+[maintenance](docs/maintenance.md). The renderer retains React 16 and the existing Markdown/math/diagram libraries.
+Bundled asset modernization, broader platform verification and executable
+bundles remain separate follow-up work.
 
 ## Changes from the original
 
@@ -152,6 +158,7 @@ separate follow-up work.
 | Shared preview/auto-close lifecycle | Independent buffers, explicit start/toggle/stop, cleanup on buffer disposal/exit |
 | Local document links lack live buffer navigation | Native links resolve hidden Neovim buffers and reuse unsaved content |
 | Original appearance | Independent palettes/modes, sticky controls, width and syntax improvements, scrollable tables |
+| Next.js build/export pipeline | Static esbuild bundle with ordered local renderer assets |
 | External runtime patch scripts in personal configuration | Features live in plugin source with browser regression tests |
 
 ## Limitations

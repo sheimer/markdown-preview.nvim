@@ -71,7 +71,6 @@ typings/
 # dotenv environment variables file
 .env
 
-app/.next/
 app/bin/
 
 # Generated locally with npm run build; never commit bundles.

@@ -1,3 +1,7 @@
+---
+fixture_metadata: hidden-yaml-regression-marker
+---
+
 # Renderer smoke
 
 > [!NOTE]
@@ -50,4 +54,10 @@ st->e
 
 ```dot
 digraph { A -> B }
+```
+
+```plantuml
+@startuml
+Alice -> Bob: Encoded locally
+@enduml
 ```

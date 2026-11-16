@@ -173,6 +173,49 @@ test(
     )
 
     await step(
+      'custom document titles preserve template and filename characters as text',
+      async () => {
+        const title = await nvim.lua('return vim.g.mkdp_page_title')
+        const filename = 'Title & spaces.md'
+        const template = 'Preview & <title> ${name}'
+        let page, buf
+        await fs.writeFile(
+          path.join(nvim.fixture, filename),
+          '# Named document\n'
+        )
+        await nvim.lua('vim.g.mkdp_page_title = ...', [template])
+        try {
+          buf = await nvim.edit(filename)
+          page = await start()
+          await rendered(page, 'Named document')
+          const expected = 'Preview & <title> Title & spaces'
+          await until(
+            async () => (await page.title()) === expected,
+            'Custom document title did not update'
+          )
+          assert.equal(await page.locator('head title').count(), 1)
+          await page.reload()
+          await rendered(page, 'Named document')
+          await until(
+            async () => (await page.title()) === expected,
+            'Custom document title did not survive reload'
+          )
+          await nvim.command('MarkdownPreviewStop')
+          await closed(page)
+        } finally {
+          if (page && !page.isClosed()) await page.close()
+          if (buf)
+            await nvim.lua(
+              'if vim.api.nvim_buf_is_valid(...) then vim.api.nvim_buf_delete(..., {force = true}) end',
+              [buf]
+            )
+          await nvim.lua('vim.g.mkdp_page_title = ...', [title])
+          await nvim.lua('vim.api.nvim_set_current_buf(...)', [sourceBuf])
+        }
+      }
+    )
+
+    await step(
       'start refreshes; native encoded and reference links reuse hidden listed buffers',
       async () => {
         const launches = (await nvim.launches()).length
@@ -435,10 +478,34 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
             pathname + ' MIME type: ' + response.type
           )
         }
+        const bundlePath = await source
+          .locator('script[src^="/_assets/"]')
+          .getAttribute('src')
+        assert.match(bundlePath, /^\/_assets\/[^/]+\.js$/)
+        const bundle = await get(bundlePath)
+        assert.equal(bundle.status, 200)
+        assert.ok(bundle.type.startsWith('application/javascript'))
+        const notice = /For license information please see ([^\s*]+)/.exec(
+          bundle.body
+        )
+        assert.ok(
+          notice,
+          'The browser bundle must link its third-party notices'
+        )
+        const noticePath = new URL(notice[1], new URL(bundlePath, source.url()))
+          .pathname
+        const legal = await get(noticePath)
+        assert.equal(legal.status, 200)
+        assert.ok(legal.type.startsWith('text/plain'))
+        assert.ok(legal.body.includes('React'))
+        assert.ok(legal.body.includes('MIT'))
         for (const pathname of [
           '/_next/../../package.json',
           '/_static/../package.json',
           '/_next/not-a-real-asset.js',
+          '/_assets/../../../package.json',
+          '/_assets/../index.html',
+          '/_assets/not-a-real-asset.js',
           '/_static/not-a-real-asset.js'
         ]) {
           const result = await get(pathname)
@@ -447,6 +514,36 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
             !result.body.includes('devDependencies'),
             'Repository contents must not leak'
           )
+        }
+      }
+    )
+
+    await step(
+      'unknown pages show a standalone 404 without starting a preview client',
+      async () => {
+        const page = await context.newPage()
+        const socketRequests = []
+        page.on('request', (request) => {
+          if (new URL(request.url()).pathname.startsWith('/socket.io/'))
+            socketRequests.push(request.url())
+        })
+        try {
+          const response = await page.goto(
+            new URL('/not-a-preview-document', source.url()).href
+          )
+          assert.equal(response.status(), 404)
+          await page
+            .getByRole('heading', { name: '404', exact: true })
+            .waitFor()
+          assert.equal(await page.title(), 'Preview not found')
+          assert.equal(await page.locator('script').count(), 0)
+          assert.equal(
+            await page.evaluate(() => typeof window.socket),
+            'undefined'
+          )
+          assert.deepEqual(socketRequests, [])
+        } finally {
+          await page.close()
         }
       }
     )
@@ -582,6 +679,12 @@ vim.g.mkdp_preview_options = options`)
         await nvim.edit('rendering.md')
         const page = await start()
         await rendered(page, 'Renderer smoke')
+        assert.ok(
+          !(await page.locator('.markdown-body').textContent()).includes(
+            'hidden-yaml-regression-marker'
+          ),
+          'YAML frontmatter must stay hidden by default'
+        )
         await page.locator('.md-callout-note strong').waitFor()
         await page.locator('.md-callout-caution').waitFor()
         await page.locator('.katex').first().waitFor()
@@ -597,6 +700,16 @@ vim.g.mkdp_preview_options = options`)
               .locator('img[src*="local.svg"]')
               .evaluate((el) => el.complete && el.naturalWidth === 20),
           'Local image did not load'
+        )
+        // Verify the browser encoder without contacting the remote UML service.
+        const uml = await page
+          .locator('img[src^="https://www.plantuml.com/plantuml/img/"]')
+          .getAttribute('src')
+        assert.equal(
+          require('plantuml-encoder').decode(
+            new URL(uml).pathname.split('/').pop()
+          ),
+          '@startuml\nAlice -> Bob: Encoded locally\n@enduml'
         )
         await page.evaluate(() => window.scrollTo(0, 400))
         assert.ok(

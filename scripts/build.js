@@ -1,25 +1,68 @@
 const { spawnSync } = require('node:child_process')
-const { rmSync, writeFileSync } = require('node:fs')
+const { copyFileSync, readFileSync, rmSync, writeFileSync } = require('node:fs')
 const path = require('node:path')
 
 if (Number(process.versions.node.split('.')[0]) !== 24) {
   throw new Error('Build and run Markdown Preview with Node.js 24.')
 }
+const esbuild = require('esbuild')
 const root = path.resolve(__dirname, '..')
-function run(script, args, cwd, env = process.env) {
-  const result = spawnSync(process.execPath, [script, ...args], { cwd, env, stdio: 'inherit' })
+const app = path.join(root, 'app')
+const out = path.join(app, 'out')
+
+if (!process.argv.includes('--frontend')) {
+  rmSync(path.join(app, 'lib'), { recursive: true, force: true })
+  const result = spawnSync(
+    process.execPath,
+    [require.resolve('typescript/bin/tsc'), '-p', root],
+    {
+      cwd: root,
+      stdio: 'inherit'
+    }
+  )
   if (result.error) throw result.error
   if (result.status !== 0) process.exit(result.status || 1)
 }
-if (!process.argv.includes('--frontend')) {
-  rmSync(path.join(root, 'app/lib'), { recursive: true, force: true })
-  run(require.resolve('typescript/bin/tsc'), ['-p', root], root)
-}
-rmSync(path.join(root, 'app/.next'), { recursive: true, force: true })
-rmSync(path.join(root, 'app/out'), { recursive: true, force: true })
-// Next 7's webpack uses MD4. Keep this legacy compatibility flag scoped to builds.
-const env = { ...process.env, NODE_OPTIONS: [process.env.NODE_OPTIONS, '--openssl-legacy-provider'].filter(Boolean).join(' ') }
-const next = require.resolve('next/dist/bin/next')
-run(next, ['build'], path.join(root, 'app'), env)
-run(next, ['export'], path.join(root, 'app'), env)
-writeFileSync(path.join(root, 'app/out/build-version'), require('../package.json').version + '\n')
+// Remove the obsolete cache when rebuilding an existing Next-based installation.
+rmSync(path.join(app, '.next'), { recursive: true, force: true })
+rmSync(out, { recursive: true, force: true })
+const entry = path.join(app, 'client.jsx')
+const result = esbuild.buildSync({
+  absWorkingDir: root,
+  entryPoints: [entry],
+  outdir: path.join(out, 'assets'),
+  entryNames: '[name]-[hash]',
+  bundle: true,
+  platform: 'browser',
+  // md-it-meta requires Markdown-It from CommonJS. Share the package's public
+  // CommonJS entry with the application's import instead of bundling two parsers.
+  alias: { 'markdown-it': require.resolve('markdown-it') },
+  format: 'iife',
+  target: 'es2020',
+  define: { 'process.env.NODE_ENV': '"production"' },
+  minify: true,
+  legalComments: 'linked',
+  metafile: true,
+  logLevel: 'info'
+})
+const bundle = Object.entries(result.metafile.outputs).find(
+  ([, output]) =>
+    output.entryPoint && path.resolve(root, output.entryPoint) === entry
+)
+if (!bundle) throw new Error('The preview browser entry was not emitted.')
+const template = readFileSync(path.join(app, 'index.html'), 'utf8')
+const marker = '<!-- preview-bundle -->'
+if (!template.includes(marker))
+  throw new Error('The preview HTML is missing its bundle marker.')
+writeFileSync(
+  path.join(out, 'index.html'),
+  template.replace(
+    marker,
+    '<script defer src="/_assets/' + path.basename(bundle[0]) + '"></script>'
+  )
+)
+copyFileSync(path.join(app, '404.html'), path.join(out, '404.html'))
+writeFileSync(
+  path.join(out, 'build-version'),
+  require('../package.json').version + '\n'
+)

@@ -132,6 +132,42 @@ and retains bounded event/socket diagnostics on failure. Foregrounding does not
 request another content refresh. This improves diagnosis and visible-UI checks;
 it is not a claim that the original timeout's cause has been fixed.
 
+## Frontend-builder follow-up review
+
+The esbuild replacement was validated from an isolated source copy in a directory
+named `plugin with spaces`, using a normal `npm ci --no-audit --no-fund` and
+`npm run build`. That copy contains the uncommitted source changes and no shared
+`node_modules`, generated output or private Lua configuration. Node 24/npm 11
+and the baseline macOS/Neovim versions above were retained.
+
+| Check | Result |
+| --- | --- |
+| Locked install and full build | Passed |
+| Chromium 141 | 21/21 passed |
+| Firefox 142.0.1 | 21/21 passed |
+| Actual MD Preview.app / Firefox 161.0 helper smoke | Passed with isolated profile |
+| Repeated frontend build output hashes | Identical |
+| Current locked npm audit | 0 findings |
+
+New assertions cover literal title/filename characters and reloads, hidden YAML
+frontmatter, the real compiled bundle and linked license notices, confinement
+and missing-file behavior on `/_assets/`, and a script-free 404 with no socket
+requests. The build check runs from outside the checkout with empty
+`NODE_OPTIONS` and compares every emitted file's bytes across two frontend builds.
+A separate metafile inspection confirmed a single Markdown-It parser entry.
+
+The final workspace browser runs additionally check that the emitted PlantUML
+image URL decodes to the expected UML source without contacting its remote
+service. All earlier lifecycle, link, unsaved-content, origin, table, palette,
+code helper, math, chart and local diagram coverage remains in place. A successful
+builder run does not establish the cause of the earlier intermittent Firefox
+timeout noted above, or verify external PlantUML service rendering and print.
+
+The source installation and public preview commands are unchanged. The installed
+plugin and dotfiles lock remain at v0.1.0 until a separately authorized migration.
+The vendor assets remain outside the npm advisory report; zero npm findings is
+not a complete renderer security or licensing audit.
+
 ## Limits
 
 Headless runs do not validate macOS window decorations, desktop focus behavior,

@@ -15,15 +15,16 @@ choices remain in the Neovim configuration. Runtime source patching is retired.
 
 Node.js 24 and npm are the supported toolchain. The root `package-lock.json`
 is the only dependency lock. Use `npm ci`; do not maintain a Yarn lock or install
-an independent dependency tree inside `app`. Generated `app/lib`, `app/out` and
-`app/.next` files are ignored and must be rebuilt after checkout/update. Static
+an independent dependency tree inside `app`. Generated `app/lib` and `app/out` files are ignored and must be rebuilt after
+checkout/update. Static
 vendor files under `app/_static` remain versioned source inputs. Installation
 must build locally; no upstream release executable is downloaded.
 
 A reproducible installation means exact locked packages, an explicit runtime
-major, and a build from those source inputs. It does not promise byte-identical
-Next.js output (the legacy builder includes a generated build identifier).
-Keep all runtime dependencies installed after building.
+major, and a build from those source inputs. The esbuild pipeline also checks
+identical output bytes and filenames across repeated frontend builds in the same
+environment. Cross-platform byte identity has not been verified. Keep all runtime
+dependencies installed after building.
 
 ## Dependency audit snapshot (v0.1.0)
 
@@ -37,11 +38,11 @@ No automatic audit fix or major-version upgrade was mixed into this migration.
 
 ## First follow-up: runtime dependencies and input handling
 
-The first review block updates the live socket and Markdown parser dependencies,
-removes an unused router, and fixes two input-handling defects. It keeps Node 24,
-Next 7 / React 16, the existing renderers and the per-buffer RPC contract.
+Committed as `d1a649b`, the first follow-up updates the live socket and Markdown parser dependencies,
+removes an unused router, and fixes two input-handling defects. This block kept
+Node 24, Next 7 / React 16, the existing renderers and the per-buffer RPC contract.
 
-| Dependency | Baseline lock | Review candidate |
+| Dependency | Baseline lock | Runtime follow-up |
 | --- | --- | --- |
 | `socket.io` | 2.4.1 | 4.8.4 |
 | `socket.io-client` | 2.5.0 | 4.8.4 |
@@ -59,9 +60,9 @@ line preserves automatic fuzzy links and existing parser-plugin interfaces;
 15 changes those behaviors. See the
 [14.3.3 changelog](https://github.com/markdown-it/markdown-it/blob/14.3.3/CHANGELOG.md)
 and [smartquotes advisory](https://github.com/markdown-it/markdown-it/security/advisories/GHSA-r7fv-28h4-cvq7).
-The old webpack cannot consume the new parser's ESM dependency graph, so
-`app/next.config.js` selects the package's self-contained browser distribution.
-Remove that compatibility alias when replacing the frontend builder.
+At that step, the old webpack could not consume the new parser's ESM dependency
+graph. A temporary `app/next.config.js` alias selected the package's self-contained
+browser distribution; the second follow-up removes that configuration.
 
 ### Input handling
 
@@ -79,11 +80,11 @@ Remove that compatibility alias when replacing the frontend builder.
   headers, and an attacker-controlled hostname may still match after rebinding.
   HTTP document/image routes are not given an authentication policy in this block.
 
-### Refreshed audit
+### Audit after the runtime follow-up
 
 `npm audit --json`, refreshed 2026-11-16 against each lockfile:
 
-| Severity | v0.1.0 | Review candidate |
+| Severity | v0.1.0 | Runtime follow-up |
 | --- | ---: | ---: |
 | Low | 9 | 6 |
 | Moderate | 9 | 6 |
@@ -91,28 +92,69 @@ Remove that compatibility alias when replacing the frontend builder.
 | Critical | 3 | 3 |
 | Total | 50 | 38 |
 
-The audit no longer flags Markdown-It or either Socket.IO package. The remaining
-38 findings are in the retained Next dependency graph; Next is the remaining
-flagged direct dependency. Removing `next-routes` does not remove `path-to-regexp`,
-which Next also uses. There is no claim that all remaining findings are
-unreachable: the application uses `next/head` and exported Next browser assets,
-even though its custom HTTP server never imports the Next server/router.
-`npm audit --omit=dev` would still include the builder, which is currently a
-production dependency. Moving it to devDependencies alone would not remediate it.
+At `d1a649b`, the audit no longer flagged Markdown-It or either Socket.IO package.
+Its remaining 38 findings belonged to the retained Next dependency graph; Next
+was the remaining flagged direct dependency. Removing `next-routes` does not remove `path-to-regexp`,
+which Next also used. Those findings were not all declared unreachable: the
+application used `next/head` and exported Next browser assets, even though its
+custom HTTP server never imported the Next server/router.
+`npm audit --omit=dev` still included the builder as a production dependency;
+moving it to devDependencies alone would not have remediated it.
 
-The next dependency block is the frontend-builder replacement below. Keep asset
-refresh, platform coverage and a full document/remote-access trust design as
-separate review blocks.
+The frontend-builder replacement below addresses that remaining npm dependency
+graph. Asset refresh, platform coverage and a full document/remote-access trust
+design remain separate review blocks.
+
+## Second follow-up: static frontend build
+
+The second follow-up replaces Next 7 / webpack with esbuild 0.28.2. React 16,
+Markdown rendering plugins, diagram/math libraries and the Neovim RPC contract
+remain in place. The custom HTTP server continues to serve static frontend files.
+No frontend framework rewrite or third-party asset refresh is included.
+
+- `app/index.html` contains the styles and ordered vendor scripts. Classic
+  `defer` scripts execute in document order, with the compiled entry last.
+- `app/client.jsx` mounts the existing preview component. The `__next` mount ID
+  remains for compatibility with bundled and user stylesheets; there is no Next
+  dependency behind it. Browser titles use `document.title` as text.
+- `scripts/build.js` compiles the server helpers with TypeScript and bundles the
+  browser entry with esbuild. The source installation command remains
+  `npm ci && npm run build`; frontend-only builds use `npm run build-app`.
+- `app/out/index.html` points to a content-hashed script under `app/out/assets`.
+  The server exposes those files through a confined `/_assets/` route. Linked
+  `.LEGAL.txt` output is retained and served with a text MIME type.
+- `app/404.html` is copied into the output as a standalone error page without
+  preview scripts or a socket connection. The build-version marker is retained.
+- The Next configuration, export machinery and scoped OpenSSL legacy-provider
+  option are removed. Rebuilding also clears an old installation's `.next` cache.
+
+The old parser/browser compatibility alias is gone with Next. A separate esbuild
+alias shares Markdown-It's public CommonJS entry between the application and
+`md-it-meta`'s CommonJS import, avoiding duplicate parser bundles. The native
+esbuild compiler is a build dependency installed from the npm lockfile for the
+host platform; it is not a standalone plugin executable or runtime requirement.
+
+### Audit and validation
+
+The refreshed npm audit on 2026-11-16 reports **0 findings** across the locked npm
+dependency graph, down from 38 after the runtime follow-up and 50 at v0.1.0.
+This does not audit the vendor files in `app/_static`, establish a trust mode for
+untrusted Markdown, or provide remote authentication/DNS-rebinding protection.
+
+Acceptance coverage adds custom title/filename text, hidden YAML metadata,
+compiled bundle and linked notice responses, confinement of the new asset route,
+a script-free 404, and offline verification of PlantUML URL encoding. A build test runs from outside the checkout with no
+`NODE_OPTIONS` and compares every frontend output's hash across two builds.
+The normal browser suites remain the behavior contract; see
+[validation](validation.md) for current results and limits.
 
 ## Focused follow-up
 
-1. Inventory and address dependency advisories, starting at the HTTP/socket and
-   Markdown trust boundaries. Keep the browser behavior suite as the acceptance
-   contract. The retained Next.js 7 / React 16 stack is old; baseline success
-   does not mean that its dependency security work is complete.
-2. Replace the legacy frontend builder and remove its scoped OpenSSL legacy
-   provider requirement in a separate change. Preserve diagram/math/export
-   rendering and the per-buffer RPC contract.
+1. Runtime dependency/input hardening is committed as `d1a649b`. Continue refreshing
+   advisory data and retain the browser behavior suite as the acceptance contract.
+2. The esbuild replacement is complete. It removes the old
+   frontend-builder dependency graph and OpenSSL compatibility option while
+   preserving the rendering stack and per-buffer RPC contract.
 3. Inventory bundled assets and their transitive licenses/versions, especially
    legacy TweenLite, Graphviz/Viz.js and the unversioned Mermaid bundle. Refresh
    or replace them deliberately with rendering regression coverage.

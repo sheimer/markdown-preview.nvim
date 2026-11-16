@@ -9,6 +9,7 @@ const contentTypes = {
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -93,10 +94,10 @@ use((req, res, next) => {
   next()
 })
 
-// /_next/path
+// Compiled browser bundle and its linked third-party license notices.
 use((req, res, next) => {
-  if (req.asPath.startsWith('/_next/')) {
-    if (staticAsset('./out/_next', req.asPath.slice('/_next/'.length), res)) return
+  if (req.asPath.startsWith('/_assets/')) {
+    if (staticAsset('./out/assets', req.asPath.slice('/_assets/'.length), res)) return
   }
   next()
 })

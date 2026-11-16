@@ -1,3 +1,5 @@
+import { escape } from './utils'
+
 let options = {}
 
 const diagram = (md, opts = {}) => {
@@ -8,7 +10,7 @@ const diagram = (md, opts = {}) => {
     try {
       if (token.info && token.info.trim() === 'sequence-diagrams') {
         const code = token.content.trim()
-        return `<div class="sequence-diagrams">${code}</div>`
+        return `<div class="sequence-diagrams">${escape(code)}</div>`
       }
     } catch (e) {
       console.error(`Parse Diagram Error: `, e)

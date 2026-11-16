@@ -11,7 +11,7 @@ import markdownDeflist from 'markdown-it-deflist'
 
 import mk from './katex'
 import chart from './chart'
-import mkitMermaid from './mermaid'
+import mkitMermaid, { renderMermaid } from './mermaid'
 import linenumbers from './linenumbers'
 import image from './image'
 import diagram, { renderDiagram } from './diagram'
@@ -128,6 +128,7 @@ export default class PreviewPage extends React.Component {
     this.preContent = ''
     this.timer = undefined
     this.bufnr = -1;
+    this.renderVersion = 0
 
     this.state = {
       name: '',
@@ -225,6 +226,8 @@ export default class PreviewPage extends React.Component {
   }
 
   componentWillUnmount() {
+    this.renderVersion += 1
+    clearTimeout(this.timer)
     window.removeEventListener('keydown', this.codeBlockSelectAll)
   }
 
@@ -334,6 +337,8 @@ export default class PreviewPage extends React.Component {
     const newContent = content.join('\n')
     const refreshContent = this.preContent !== newContent
     this.preContent = newContent
+    if (refreshContent) this.renderVersion += 1
+    const renderVersion = this.renderVersion
 
     const refreshScroll = () => {
       if (isActive && !options.disable_sync_scroll) {
@@ -345,6 +350,9 @@ export default class PreviewPage extends React.Component {
         })
       }
     }
+    // Cursor-only refreshes can arrive while an optional renderer initializes.
+    // Use the latest editor position when asynchronous rendering completes.
+    this.refreshScroll = refreshScroll
 
     const refreshRender = () => {
       this.setState({
@@ -362,25 +370,20 @@ export default class PreviewPage extends React.Component {
         theme,
         contentEditable: options.content_editable,
         disableFilename: options.disable_filename
-      }, () => {
+      }, async () => {
         if (refreshContent) {
-          try {
-            // eslint-disable-next-line
-            mermaid.initialize({ theme: (this.state.theme || 'light'), ...(options.maid || {}) })
-            // eslint-disable-next-line
-            mermaid.init(undefined, document.querySelectorAll('.mermaid'))
-            // Mermaid inserts cluster labels before links; move them above arrows.
-            document.querySelectorAll('.mermaid .cluster-label').forEach((label) => {
-              label.parentNode.appendChild(label)
-            })
-          } catch (e) { }
-
           chart.render()
           renderDiagram()
           renderFlowchart()
-          renderDot()
+          await Promise.all([
+            renderMermaid(document.querySelectorAll('.mermaid'), { theme: this.state.theme === 'dark' ? 'dark' : 'default', ...(options.maid || {}) }),
+            renderDot()
+          ])
         }
+        // New edits can replace these nodes while a lazy renderer initializes.
+        if (renderVersion !== this.renderVersion) return
         window.requestAnimationFrame(() => {
+          if (renderVersion !== this.renderVersion) return
           if (this.linkAnchorPending) {
             this.linkAnchorPending = false
             try {
@@ -388,7 +391,7 @@ export default class PreviewPage extends React.Component {
               if (target) target.scrollIntoView()
             } catch (error) { /* Ignore malformed fragments. */ }
           } else {
-            refreshScroll()
+            this.refreshScroll()
           }
         })
       })

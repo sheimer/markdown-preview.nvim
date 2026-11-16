@@ -18,6 +18,8 @@ Footnote here[^1]. :smile:
 
 $E=mc^2$
 
+$\ce{H2O}$
+
 ```javascript
 const answer = 42
 ```
@@ -47,7 +49,7 @@ Alice->Bob: Hello
 ```
 
 ```flowchart
-st=>start: Start
+st=>start: Start <b>literal</b>
 e=>end: End
 st->e
 ```

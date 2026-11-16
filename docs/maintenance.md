@@ -16,9 +16,10 @@ choices remain in the Neovim configuration. Runtime source patching is retired.
 Node.js 24 and npm are the supported toolchain. The root `package-lock.json`
 is the only dependency lock. Use `npm ci`; do not maintain a Yarn lock or install
 an independent dependency tree inside `app`. Generated `app/lib` and `app/out` files are ignored and must be rebuilt after
-checkout/update. Static
-vendor files under `app/_static` remain versioned source inputs. Installation
-must build locally; no upstream release executable is downloaded.
+checkout/update. Project styles/favicon remain under `app/_static`. The retained
+vendor sources under `app/vendor` are hash-verified; other renderer assets come
+from exact npm versions and are copied/bundled into `app/out`. Installation must
+build locally; no upstream release executable is downloaded.
 
 A reproducible installation means exact locked packages, an explicit runtime
 major, and a build from those source inputs. The esbuild pipeline also checks
@@ -148,16 +149,86 @@ a script-free 404, and offline verification of PlantUML URL encoding. A build te
 The normal browser suites remain the behavior contract; see
 [validation](validation.md) for current results and limits.
 
+## Third follow-up: renderer asset maintenance
+
+This follow-up replaces inherited runtime blobs with pinned, reproducible
+assets and records the available licenses and provenance. It adds no Mermaid
+zoom/pan controls or expanded viewer; those features remain deferred.
+
+| Component | Previous source | Current source |
+| --- | --- | --- |
+| Mermaid | Unversioned filename, matching the Git update recorded as 10.2.3 (`a648af9`) | npm `mermaid` 12.3.0 |
+| Viz / Graphviz | Viz 2.1.2 / Graphviz 2.40.1 | npm `@viz-js/viz` 3.31.0 / Graphviz 16.1.0 |
+| KaTeX / mhchem / fonts | KaTeX 0.15.3 plus unused 0.13.10 and an unversioned chemistry file | Matched npm `katex` 0.19.1 distribution |
+| Underscore | 1.9.1 | npm 1.13.8 |
+| Web Font Loader | 1.6.26 | npm 1.6.28 |
+| Flowchart | 1.13.0 | npm 1.18.1, bundled with Raphael 2.3.0 |
+| Snap.svg / sequence diagrams | 0.5.1 / 2.0.1 | Same verified Git source bytes, pinned by commit and SHA-256 |
+| TweenLite | GreenSock 1.17.0 browser global | Native 400 ms cubic ease-out scrolling, cancellation and reduced-motion support |
+| Sequence handwriting font | Inherited modified Daniel font files | Unchanged OFL Kalam Bold from `@fontsource/kalam` 5.3.0 |
+
+### Build and runtime behavior
+
+- [app/vendor-assets.json](../app/vendor-assets.json) declares copied npm assets,
+  retained sources, versions, hashes and source URLs. The build checks versions
+  and retained-source hashes, copies assets/notices under `/_assets/vendor/`,
+  and generates the ordered stylesheet/classic-script tags. `.gitattributes`
+  prevents checkout line-ending conversion from changing verified source bytes.
+- Mermaid and Viz are lazy ES-module imports. Plain documents do not download
+  either engine. Mermaid's own diagram modules and Viz's embedded WebAssembly
+  stay local; no browser CDN or external Graphviz service is introduced.
+- Both diagram adapters use asynchronous rendering, safe visible syntax errors,
+  cached initialization and detached-node checks. A generation guard prevents an
+  old document render from scrolling a newer one. Completion also uses the latest
+  cursor-only scroll snapshot; a deterministic held-WASM regression proves that
+  a late renderer cannot overwrite a newer editor position.
+- The server-side TypeScript configuration explicitly limits ambient types to
+  Node. Frontend Mermaid/D3 types are handled by esbuild and do not force an
+  unrelated TypeScript compiler upgrade for the Node helpers.
+- Existing Mermaid palette overrides, code fences, Graphviz aliases, math,
+  chemistry, sequence/flowchart rendering, links and preview lifecycle remain.
+  New renderer versions can change diagram layout. The sequence hand theme has a
+  different handwriting face while retaining its API-compatible CSS family alias.
+
+Mermaid's optional internal math renderer currently resolves its own KaTeX
+0.18.10 dependency; global Markdown math/chemistry uses 0.19.1. Both versions are
+locked and represented in the relevant asset/module inventories. No forced
+transitive-version override is used.
+
+### Notices and limits
+
+Every build produces `assets/vendor/bundled-modules.json` and
+`assets/vendor/BUNDLED-LICENSES.txt`, alongside linked minifier `.LEGAL.txt`
+files. The module report derives ownership from emitted esbuild inputs and the
+lockfile, records exact versions, published repositories/archive integrity and
+full available notices, and supplements the Viz package with its native runtime
+notices and source-archive hashes. See [third-party notices](../THIRD_PARTY_NOTICES.md)
+and [Viz provenance](../app/vendor-viz.json).
+
+There is one explicitly recorded full-text notice gap: `md-it-meta` 0.0.2 declares
+MIT but its published package and source tree contain no standalone full license
+notice. No attribution has been invented. Resolve that gap before claiming
+complete redistribution notice clearance; this inventory is not a legal
+compliance certification. Snap.svg and sequence-diagrams remain older retained
+libraries with verified provenance, rather than being presented as modernized.
+
+The refreshed locked npm audit still reports **0 findings** (2026-11-16). This is
+not a security audit of retained vendor code or a new untrusted-document mode.
+Validation uses modern Chromium/Firefox with ES modules, dynamic imports and
+WebAssembly. Other browsers/platforms remain unverified; the ES2020 build target
+is not a promise that newer library APIs are polyfilled. Current checks and
+remaining limits are recorded in [validation](validation.md).
+
 ## Focused follow-up
 
 1. Runtime dependency/input hardening is committed as `d1a649b`. Continue refreshing
    advisory data and retain the browser behavior suite as the acceptance contract.
-2. The esbuild replacement is complete. It removes the old
+2. The esbuild replacement is committed as `b0cad8c`. It removes the old
    frontend-builder dependency graph and OpenSSL compatibility option while
    preserving the rendering stack and per-buffer RPC contract.
-3. Inventory bundled assets and their transitive licenses/versions, especially
-   legacy TweenLite, Graphviz/Viz.js and the unversioned Mermaid bundle. Refresh
-   or replace them deliberately with rendering regression coverage.
+3. Renderer asset maintenance is complete. Keep the manifests and
+   generated notices aligned when updating packages, and resolve the recorded
+   `md-it-meta` full-text notice gap. Mermaid viewer features remain deferred.
 4. Add verified Linux, Windows and WSL browser runs and choose a minimum Neovim
    version from actual CI coverage. Standalone executable bundles are deferred.
 5. Consider a trust mode for untrusted Markdown and authenticated remote access

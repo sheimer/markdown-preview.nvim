@@ -1,0 +1,5 @@
+# These source bytes are verified by hash or retained as published notices.
+# Keep checkout line-ending conversion from changing their provenance.
+app/vendor/** -text
+# Preserve upstream notice whitespace as well as line endings.
+docs/licenses/** -text -whitespace

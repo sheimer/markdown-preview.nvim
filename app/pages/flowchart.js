@@ -1,3 +1,5 @@
+import { escape } from './utils'
+
 let options = {}
 
 const flowchart = (md, opts = {}) => {
@@ -8,7 +10,7 @@ const flowchart = (md, opts = {}) => {
     try {
       if (token.info && token.info.trim() === 'flowchart') {
         const code = token.content.trim()
-        return `<div class="flowchart">${code}</div>`
+        return `<div class="flowchart">${escape(code)}</div>`
       }
     } catch (e) {
       console.error(`Parse flowchart Error: `, e)

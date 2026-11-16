@@ -1,0 +1,54 @@
+{
+  "package": "@viz-js/viz",
+  "version": "3.31.0",
+  "license": "MIT",
+  "licenseFile": "docs/licenses/Viz-3.31.0.txt",
+  "licenseSource": "https://raw.githubusercontent.com/mdaines/viz-js/c8ce050d28eb0dc1ed1629ea32ab7f3dc117db0f/LICENSE",
+  "sourceRepository": "https://github.com/mdaines/viz-js",
+  "npmTarball": "https://registry.npmjs.org/@viz-js/viz/-/viz-3.31.0.tgz",
+  "backend": {
+    "provenanceFile": "node_modules/@viz-js/viz/lib/provenance.json",
+    "buildSourceCommit": "c8ce050d28eb0dc1ed1629ea32ab7f3dc117db0f",
+    "sha256": "881b3c3dc511a38c90f1df16983776d7cdfd9f6900544b3a184289ff062aaafe",
+    "emscriptenSDK": "6.0.10",
+    "toolchainImage": "emscripten/emsdk:6.0.10",
+    "toolchainImageSha256": "e077d54e2b8970575ebc4f185ac1de0b95c05f2b266134d4ba27449af7aebf65",
+    "emscriptenLicenseFile": "docs/licenses/Emscripten-6.0.10.txt",
+    "emscriptenLicenseSource": "https://raw.githubusercontent.com/emscripten-core/emscripten/6.0.10/LICENSE",
+    "emscriptenLicenseSha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86",
+    "runtimeNotices": [
+      {
+        "component": "musl",
+        "licenseFile": "docs/licenses/Emscripten-6.0.10-musl.txt",
+        "licenseSource": "https://raw.githubusercontent.com/emscripten-core/emscripten/6.0.10/system/lib/libc/musl/COPYRIGHT",
+        "licenseSha256": "b870108ec5e7790e9f9919064f1b9421d62d5f9b0e6c230c6adf7ea2da62e97b"
+      },
+      {
+        "component": "libc++",
+        "licenseFile": "docs/licenses/Emscripten-6.0.10-libcxx.txt",
+        "licenseSource": "https://raw.githubusercontent.com/emscripten-core/emscripten/6.0.10/system/lib/libcxx/LICENSE.TXT",
+        "licenseSha256": "539dd7aed86e8a4f12cbdd0e6c50c189c7d74847e4fecc64ce2c6ee3a01da38b"
+      }
+    ]
+  },
+  "bundledComponents": [
+    {
+      "name": "Graphviz",
+      "version": "16.1.0",
+      "license": "EPL-2.0",
+      "licenseFile": "docs/licenses/Graphviz-16.1.0.txt",
+      "licenseSourcePath": "graphviz-16.1.0/COPYING",
+      "sourceArchive": "https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/16.1.0/graphviz-16.1.0.tar.gz",
+      "sourceSha256": "beea483ab130f456c1c3905f4f2e40778a9c493c3d73ae8012367d552d71ca84"
+    },
+    {
+      "name": "Expat",
+      "version": "2.8.5",
+      "license": "MIT",
+      "licenseFile": "docs/licenses/Expat-2.8.5.txt",
+      "licenseSourcePath": "expat-2.8.5/COPYING",
+      "sourceArchive": "https://github.com/libexpat/libexpat/releases/download/R_2_8_5/expat-2.8.5.tar.gz",
+      "sourceSha256": "920dde485e15eda0cce8d2310b41d492c534e5e3d89ad407a0b4176dd2ff88fe"
+    }
+  ]
+}

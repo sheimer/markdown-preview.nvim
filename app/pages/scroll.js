@@ -1,15 +1,32 @@
+let animationFrame
+
 function scroll (offsetTop) {
-  [document.body, document.documentElement].forEach((ele) => {
-    // eslint-disable-next-line
-    TweenLite.to(
-      ele,
-      0.4,
-      {
-        scrollTop: offsetTop,
-        ease: Power2.easeOut // eslint-disable-line
-      }
-    )
-  })
+  if (animationFrame !== undefined) {
+    window.cancelAnimationFrame(animationFrame)
+    animationFrame = undefined
+  }
+  if (!Number.isFinite(offsetTop)) return
+
+  const max = Math.max(0,
+    document.documentElement.scrollHeight - document.documentElement.clientHeight)
+  const target = Math.max(0, Math.min(offsetTop, max))
+  const start = window.scrollY
+  const move = top => window.scrollTo({ left: window.scrollX, top, behavior: 'instant' })
+  if (start === target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    move(target)
+    return
+  }
+
+  const started = window.performance.now()
+  const animate = now => {
+    const progress = Math.max(0, Math.min(1, (now - started) / 400))
+    // Match the previous 400 ms Power2 ease-out without a global animation library.
+    const eased = 1 - Math.pow(1 - progress, 3)
+    move(start + (target - start) * eased)
+    if (progress < 1) animationFrame = window.requestAnimationFrame(animate)
+    else animationFrame = undefined
+  }
+  animationFrame = window.requestAnimationFrame(animate)
 }
 
 function getAttrTag (line) {
@@ -55,6 +72,7 @@ function topOrBottom (line, len) {
 }
 
 function relativeScroll (line, ratio, len) {
+  line = Math.max(0, Math.min(line, len - 1))
   let offsetTop = 0
   const lineEle = document.querySelector(`[data-source-line="${line}"]`)
   if (lineEle) {
@@ -62,7 +80,10 @@ function relativeScroll (line, ratio, len) {
   } else {
     const pre = getPreLineOffsetTop(line)
     const next = getNextLineOffsetTop(line, len)
-    offsetTop = pre[1] + ((next[1] - pre[1]) * (line - pre[0]) / (next[0] - pre[0]))
+    const span = next[0] - pre[0]
+    offsetTop = span > 0
+      ? pre[1] + ((next[1] - pre[1]) * (line - pre[0]) / span)
+      : pre[1]
   }
   scroll(offsetTop - document.documentElement.clientHeight * ratio)
 }

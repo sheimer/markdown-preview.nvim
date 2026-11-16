@@ -15,7 +15,10 @@
     "rootDir": "./src",
     "importHelpers": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "./src"

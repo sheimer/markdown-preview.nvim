@@ -15,7 +15,7 @@ workflow or upstream pull request is intended.
 - **Node.js 24** with **npm 11**, available in Neovim's environment.
 - **Neovim 0.12+** is the initial supported target. See the actual tested versions
   and operating systems in [validation](docs/validation.md).
-- A modern browser. The default system browser works; no private Lua modules,
+- A modern browser with ES modules, dynamic imports and WebAssembly. The default system browser works; no private Lua modules,
   custom application or personal stylesheet is required.
 - Network access for the initial locked dependency installation. Rendering
   resources are served locally; PlantUML diagrams use an external service by
@@ -135,6 +135,10 @@ MKDP_TEST_BROWSER=firefox npm test
 ```
 
 The frontend uses esbuild with React 16 and the existing Markdown/diagram stack.
+Renderer versions and retained source hashes are listed in
+[the asset manifest](app/vendor-assets.json). Mermaid and Graphviz load locally
+only when needed; math, chemistry and the other vendor assets are built from
+locked packages. Mermaid zoom/pan/viewer features remain deferred.
 It emits a static HTML shell and content-hashed browser bundle; no Next.js server
 or OpenSSL legacy-provider option is needed. `npm run build-app` rebuilds only the
 frontend; `npm run build-lib` rebuilds the Node server helpers. The full build
@@ -147,8 +151,9 @@ remaining limits. Fixtures are in [fixtures](fixtures).
 
 Build and generated-asset policy, dependency follow-up and release gates are in
 [maintenance](docs/maintenance.md). The renderer retains React 16 and the existing Markdown/math/diagram libraries.
-Bundled asset modernization, broader platform verification and executable
-bundles remain separate follow-up work.
+Broader platform verification, continued asset/dependency upkeep and executable
+bundles remain follow-up work. [Third-party notices](THIRD_PARTY_NOTICES.md) also
+record the remaining full-text notice gap in the legacy metadata dependency.
 
 ## Changes from the original
 

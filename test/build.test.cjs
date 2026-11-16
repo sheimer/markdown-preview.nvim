@@ -62,6 +62,43 @@ test('frontend rebuilds produce stable standalone assets and linked license noti
     await fs.readFile(path.join(out, 'build-version'), 'utf8'),
     require('../package.json').version + '\n'
   )
+  const inventory = JSON.parse(
+    await fs.readFile(
+      path.join(out, 'assets/vendor/bundled-modules.json'),
+      'utf8'
+    )
+  )
+  assert.ok(
+    inventory.packages.some(
+      (item) => item.name === 'mermaid' && item.version === '12.3.0'
+    )
+  )
+  assert.ok(
+    inventory.packages.some(
+      (item) => item.name === '@viz-js/viz' && item.version === '3.31.0'
+    )
+  )
+  const mermaid = inventory.packages.find((item) => item.name === 'mermaid')
+  const lockedMermaid = require('../package-lock.json').packages['node_modules/mermaid']
+  assert.equal(mermaid.resolved, lockedMermaid.resolved)
+  assert.equal(mermaid.integrity, lockedMermaid.integrity)
+  assert.ok(mermaid.repository)
+  const fullNotices = await fs.readFile(
+    path.join(out, 'assets/vendor/BUNDLED-LICENSES.txt'),
+    'utf8'
+  )
+  assert.match(fullNotices, /Eclipse Public License/)
+  assert.match(fullNotices, /Mermaid|mermaid/)
+  const retained = require('../app/vendor-assets.json').retained
+  for (const source of retained) {
+    const bytes = await fs.readFile(
+      path.join(out, 'assets/vendor', source.destination)
+    )
+    assert.equal(
+      createHash('sha256').update(bytes).digest('hex'),
+      source.sha256
+    )
+  }
   build()
   assert.deepEqual(
     await snapshot(out),

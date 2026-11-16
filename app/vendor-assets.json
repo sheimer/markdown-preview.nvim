@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "name": "katex",
+      "version": "0.19.1",
+      "license": "MIT",
+      "source": "https://github.com/KaTeX/KaTeX/tree/v0.19.1",
+      "files": [
+        [
+          "dist/katex.min.css",
+          "katex/katex.min.css"
+        ],
+        [
+          "dist/katex.min.js",
+          "katex/katex.min.js"
+        ],
+        [
+          "dist/contrib/mhchem.min.js",
+          "katex/mhchem.min.js"
+        ],
+        [
+          "dist/fonts",
+          "katex/fonts"
+        ]
+      ]
+    },
+    {
+      "name": "underscore",
+      "version": "1.13.8",
+      "license": "MIT",
+      "source": "https://github.com/jashkenas/underscore/tree/1.13.8",
+      "files": [
+        [
+          "underscore-umd-min.js",
+          "underscore/underscore-umd-min.js"
+        ]
+      ]
+    },
+    {
+      "name": "webfontloader",
+      "version": "1.6.28",
+      "license": "Apache-2.0",
+      "source": "https://github.com/typekit/webfontloader/tree/v1.6.28",
+      "files": [
+        [
+          "webfontloader.js",
+          "webfont/webfontloader.js"
+        ]
+      ]
+    },
+    {
+      "name": "@fontsource/kalam",
+      "version": "5.3.0",
+      "license": "OFL-1.1",
+      "source": "https://www.npmjs.com/package/@fontsource/kalam/v/5.3.0",
+      "files": [
+        [
+          "files/kalam-latin-700-normal.woff2",
+          "sequence/kalam-latin-700-normal.woff2"
+        ]
+      ]
+    },
+    {
+      "name": "flowchart.js",
+      "version": "1.18.1",
+      "license": "MIT",
+      "source": "https://github.com/adrai/flowchart.js",
+      "files": []
+    },
+    {
+      "name": "raphael",
+      "version": "2.3.0",
+      "license": "MIT",
+      "source": "https://github.com/DmitryBaranovskiy/raphael/tree/v2.3.0",
+      "files": []
+    },
+    {
+      "name": "eve-raphael",
+      "version": "0.5.0",
+      "license": "Apache-2.0",
+      "source": "https://github.com/tomasAlabes/eve",
+      "files": []
+    }
+  ],
+  "retained": [
+    {
+      "name": "Snap.svg",
+      "version": "0.5.1",
+      "file": "app/vendor/snap.svg-min.js",
+      "destination": "snap/snap.svg-min.js",
+      "sha256": "ce63e4b1ae68e2d143d460ef071d43e90a8a0a81b20d51cc3406cbc1a3ad2549",
+      "source": "https://raw.githubusercontent.com/adobe-webplatform/Snap.svg/d8f7508872b6e9c0059e1f714514244d08acdb7b/dist/snap.svg-min.js",
+      "license": "Apache-2.0",
+      "modified": false
+    },
+    {
+      "name": "js-sequence-diagrams",
+      "version": "2.0.1",
+      "file": "app/vendor/sequence-diagram-min.js",
+      "destination": "sequence/sequence-diagram-min.js",
+      "sha256": "0d4a8864fa0ff8c5c081c0759507453e0b0d39279db0c0b62c9d9a7e8ebebc15",
+      "source": "https://raw.githubusercontent.com/bramp/js-sequence-diagrams/a6c252b2ed0d1e6b1d16be066f582afd2895e6c9/dist/sequence-diagram-min.js",
+      "license": "BSD-2-Clause",
+      "modified": false
+    },
+    {
+      "name": "sequence stylesheet adaptation",
+      "version": "2.0.1",
+      "file": "app/vendor/sequence-diagram.css",
+      "destination": "sequence/sequence-diagram.css",
+      "sha256": "145cbe028712ad7c045715e404d8224d729e2c70c500c9e1e5d2faf3fa8981ef",
+      "source": "https://raw.githubusercontent.com/bramp/js-sequence-diagrams/a6c252b2ed0d1e6b1d16be066f582afd2895e6c9/dist/sequence-diagram-min.css",
+      "license": "BSD-2-Clause",
+      "modified": true
+    }
+  ],
+  "styles": [
+    "katex/katex.min.css",
+    "sequence/sequence-diagram.css"
+  ],
+  "scripts": [
+    "underscore/underscore-umd-min.js",
+    "webfont/webfontloader.js",
+    "snap/snap.svg-min.js",
+    "sequence/sequence-diagram-min.js",
+    "katex/katex.min.js",
+    "katex/mhchem.min.js",
+    "flowchart/flowchart.js"
+  ],
+  "notes": [
+    "The js-sequence-diagrams npm name is a security-holder placeholder; the actual retained 2.0.1 bytes are pinned to the upstream Git commit instead.",
+    "The Snap.svg GitHub 0.5.1 release differs from its npm 0.5.1 distribution; retain the verified GitHub bytes, including its error-handling fix.",
+    "The modified Daniel fonts formerly inherited from js-sequence-diagrams were replaced by unchanged Kalam Bold font bytes. The internal CSS family alias remains danielbd for renderer compatibility.",
+    "KaTeX CSS, mhchem and all 60 font files come from the same locked KaTeX release.",
+    "Flowchart and Raphael are compiled into one vendor script; its Eve runtime carries Apache-2.0 notices."
+  ],
+  "bundledModuleProvenance": [
+    {
+      "name": "elkjs",
+      "version": "0.12.1",
+      "license": "EPL-2.0 OR GPL-3.0-or-later",
+      "selectedLicense": "EPL-2.0",
+      "npmTarball": "https://registry.npmjs.org/elkjs/-/elkjs-0.12.1.tgz",
+      "npmIntegrity": "sha512-IhMYKHE4S2vtx0QrhBP3lYOIKDeIiJXBrdq9MGYkuB8ZHqhrBnHNfSUndjXFewrX1CPK8chwq+2NA0K0hliYuw==",
+      "gitHead": "624ae90aa37110033a8af59c5ccbb292708b4317",
+      "source": "https://github.com/kieler/elkjs/tree/624ae90aa37110033a8af59c5ccbb292708b4317",
+      "sourceArchive": "https://github.com/kieler/elkjs/archive/624ae90aa37110033a8af59c5ccbb292708b4317.tar.gz",
+      "backendSource": "https://github.com/eclipse-elk/elk",
+      "notes": "elkjs includes a GWT-generated worker from the Eclipse ELK Java code. The inventory preserves its package license and published source revision; this is not a complete audit of the Java/GWT build closure."
+    }
+  ]
+}

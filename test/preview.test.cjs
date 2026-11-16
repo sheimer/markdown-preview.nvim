@@ -468,8 +468,11 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
           })
         for (const [pathname, type] of [
           ['/_static/markdown.css', 'text/css'],
-          ['/_static/mermaid.min.js', 'application/javascript'],
-          ['/_static/fonts/KaTeX_Main-Regular.woff2', 'font/woff2']
+          [
+            '/_assets/vendor/underscore/underscore-umd-min.js',
+            'application/javascript'
+          ],
+          ['/_assets/vendor/katex/fonts/KaTeX_Main-Regular.woff2', 'font/woff2']
         ]) {
           const response = await get(pathname)
           assert.equal(response.status, 200)
@@ -479,7 +482,7 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
           )
         }
         const bundlePath = await source
-          .locator('script[src^="/_assets/"]')
+          .locator('script[type="module"][src^="/_assets/"]')
           .getAttribute('src')
         assert.match(bundlePath, /^\/_assets\/[^/]+\.js$/)
         const bundle = await get(bundlePath)
@@ -674,6 +677,47 @@ vim.g.mkdp_preview_options = options`)
     )
 
     await step(
+      'hand-drawn sequence diagrams use the local replacement font',
+      async () => {
+        const options = await nvim.lua('return vim.g.mkdp_preview_options')
+        await fs.writeFile(
+          path.join(nvim.fixture, 'hand-sequence.md'),
+          '# Hand sequence\n\n```sequence-diagrams\nAlice->Bob: Local <b>font</b>\n```\n'
+        )
+        await nvim.lua(`local options = vim.g.mkdp_preview_options
+options.sequence_diagrams = {theme = 'hand'}
+vim.g.mkdp_preview_options = options`)
+        let page
+        try {
+          await nvim.edit('hand-sequence.md')
+          page = await start()
+          await rendered(page, 'Hand sequence')
+          await page.locator('svg').filter({ hasText: 'Alice' }).waitFor()
+          await until(
+            () => page.evaluate(() => document.fonts.check('16px danielbd')),
+            'Local handwriting font did not load'
+          )
+          const family = await page
+            .locator('svg text')
+            .first()
+            .evaluate((el) => getComputedStyle(el).fontFamily)
+          assert.ok(family.includes('danielbd'), family)
+          assert.ok(
+            (
+              await page
+                .locator('svg')
+                .filter({ hasText: 'Alice' })
+                .textContent()
+            ).includes('<b>font</b>')
+          )
+        } finally {
+          if (page && !page.isClosed()) await page.close()
+          await nvim.lua('vim.g.mkdp_preview_options = ...', [options])
+        }
+      }
+    )
+
+    await step(
       'retained renderers, alerts, code helpers and Mermaid work offline',
       async () => {
         await nvim.edit('rendering.md')
@@ -688,10 +732,19 @@ vim.g.mkdp_preview_options = options`)
         await page.locator('.md-callout-note strong').waitFor()
         await page.locator('.md-callout-caution').waitFor()
         await page.locator('.katex').first().waitFor()
+        assert.ok(
+          (await page.locator('.katex').count()) >= 2,
+          'Math and chemistry must both render'
+        )
         await page.locator('.mermaid svg').waitFor()
         await page.locator('.dot svg').waitFor()
         await page.locator('svg').filter({ hasText: 'Alice' }).waitFor()
         await page.locator('svg').filter({ hasText: 'Start' }).last().waitFor()
+        assert.ok(
+          (await page.locator('svg').allTextContents()).some((text) =>
+            text.includes('Start <b>literal</b>')
+          )
+        )
         assert.equal(await page.locator('dd').textContent(), 'Definition text')
         assert.ok(await page.locator('nav.table-of-contents').count())
         await until(

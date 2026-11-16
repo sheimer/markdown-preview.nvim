@@ -1,0 +1,13 @@
+/** js sequence diagrams 2.0.1
+ * https://bramp.github.io/js-sequence-diagrams/
+ * Copyright (c) 2012-2017 Andrew Brampton. Simplified BSD license.
+ * Modified for this fork: use unchanged OFL Kalam Bold glyphs through the
+ * renderer's legacy "danielbd" family alias, with a local font URL.
+ */
+@font-face {
+  font-family: 'danielbd';
+  src: url('kalam-latin-700-normal.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

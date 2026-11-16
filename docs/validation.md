@@ -1,8 +1,8 @@
 # Baseline validation
 
-Environment: macOS 26.6.2 (Darwin 25.6.0), Apple Silicon, Neovim 0.12.6,
-Node.js 24.12.0, npm 11.10.0. Completed 2026-11-16. Automated CI is provided;
-its hosted Linux run has not been observed in this local migration.
+Original baseline environment: macOS 26.6.2 (Darwin 25.6.0), Apple Silicon,
+Neovim 0.12.6, Node.js 24.12.0, npm 11.10.0. Completed 2026-11-16.
+Later sections record follow-up checks and the current platform evidence.
 
 ## Automated integration
 
@@ -219,6 +219,100 @@ The installed plugin and dotfiles remain at v0.1.0. The validated source changes
 are recorded with this follow-up; no installation migration or release
 publication is part of it.
 
+## Platform follow-up review
+
+The platform block adds a portable test command, health-check coverage and an
+explicit hosted matrix; it does not change the rendering dependencies. Completed
+local runs use isolated Neovim state, browser contexts and fixture copies. Node
+24.12.0/npm 11.10.0 and locked Playwright 1.56.1 are retained.
+
+| Environment | Neovim | Chromium 141.0.7390.37 | Firefox 142.0.1 |
+| --- | --- | --- | --- |
+| macOS 26.6.2 / ARM64 | 0.12.2 | 29/29 passed (24.3 s) | 29/29 passed (37.4 s) |
+| macOS 26.6.2 / ARM64 | 0.12.6 | 29/29 passed (24.5 s) | 29/29 passed (35.5 s) |
+| Ubuntu 24.04.3 / ARM64 container | 0.12.2 | 29/29 passed (20.4 s) | 29/29 passed (29.9 s) |
+
+The Linux checks use the pinned test container on Colima's ARM64 Linux VM, not a
+desktop Linux installation. Its Ubuntu 24.04.3 userspace runs with kernel
+6.8.0-64-generic; the official Node/Neovim archive checksums are enforced by the
+[Dockerfile](../test/platform/linux.Dockerfile). `npm ci` and the complete build
+run inside that image, without host dependencies or generated output. Neither
+the image nor its reports are published.
+
+The macOS 0.12.2 release archive was downloaded into a temporary tools directory
+and verified against its published SHA-256
+`eeddee1009734f9071266e6b1b8a70308cb60cbcc45f5e1c1023adc471450fee`.
+The installed Neovim binary and personal configuration were untouched. This is
+evidence for the supported 0.12.2 floor; it is not a compatibility claim for
+untested earlier editors or future major versions.
+
+The new health integration exercises the public `:checkhealth markdown_preview`
+command with a configured Node executable, verifies the actual source build and
+runtime dependencies, and checks readable errors for a missing Node executable
+and browser hook. It asserts that no preview is launched. The former check still
+looked for retired packaged executables and ignored `g:mkdp_node_command`.
+
+The runner captures the actual browser version, platform/architecture, Node/npm,
+Neovim and Playwright versions, suite output, result status and optional isolated
+session data. The browser selection rejects unknown values rather than silently
+running Chromium. A failure-path smoke confirmed a nonzero exit for an invalid
+browser. State-path containment is asserted in every Neovim session. An
+`actionlint` 1.7.12 check of the expanded workflow passed.
+
+The initial Linux Chromium run exposed an OS-font assumption in the wide-table
+test: the fixture fit the original 1100-pixel window. The test now uses a
+600-pixel viewport for that case, restoring the original size afterwards, while
+retaining every full-value, selection, keyboard scrolling, sticky-header and
+document-overflow assertion. Firefox also requires foregrounding that native
+tab before resizing it; the background resize stalled on both macOS and Linux.
+Those failed attempts were retained during investigation. They are separate
+from the earlier unexplained Firefox multi-preview DOM timeout; its cause is
+still unproven. No renderer CSS or product behavior was changed for these tests.
+
+A missing-browser bootstrap smoke additionally produced exit status 1 and the
+expected diagnostic/result files. The CI wrapper therefore preserves setup
+failures rather than reporting a zero exit status without running the suite.
+
+One earlier macOS 0.12.6/Chromium attempt passed 27/28 checks but timed out waiting
+for the browser hook before the Graphviz scenario could open its page. Its saved
+logs did not establish a cause. Ten isolated startup/shutdown probes then passed.
+Session reports now retain `:messages` and captured Neovim stderr in
+`nvim-diagnostics.json`; hook timeouts include those diagnostics in the error.
+The final table records runs with those diagnostics and the port change below.
+The original timeout remains an observed intermittent failure with unproven cause.
+
+Default previews now bind port `0`, letting the OS reserve a free local port
+atomically, and report the resulting port in their URL. This removes the prior
+1000-port clock-based selection window. The real HTTP/socket transport regression
+was confirmed to fail against that prior selection policy, then pass after the
+change. A new two-editor integration checks distinct default ports, correct live
+contents, and the second editor remaining available after the first shuts down.
+The occupied-fixed-port regression still passes. This fixes a known collision
+risk; it does not prove that a collision caused the startup timeout above.
+
+The actual MD Preview.app / Firefox 161.0 launch-helper smoke also passed against
+the final source with Neovim 0.12.2 and an isolated temporary profile. It checked
+rendering, native document links, hidden buffers, unsaved updates, per-buffer
+stop and shutdown, including URLs containing the OS-allocated server port.
+The user's persistent Firefox profile, installed plugin and application bundle
+were not modified.
+
+The previously pushed source `d46c8b1` has an observed hosted failure in
+[run 43882058739](https://github.com/sheimer/markdown-preview.nvim/actions/runs/43882058739).
+It failed while installing browser dependencies: the runner selected Ubuntu
+26.04, which Playwright 1.56.1 did not support. This is distinct from a plugin
+test failure. The revised matrix pins Ubuntu 24.04, macOS 15 and Windows 2022,
+each with Neovim 0.12.2/0.12.6 and Chromium/Firefox. **That new hosted matrix has
+not run yet.** Source checks and local results do not establish native Windows,
+Linux x86-64 or WSL desktop interoperability. The separate acceptance steps are
+in [platform testing](platform-testing.md).
+
+The `md-it-meta` notice gap was rechecked, including its parent repository, with
+no full-text notice found. It remains recorded rather than being filled with
+assumed attribution. No frontmatter or dependency replacement is included here.
+The installed plugin/dotfiles remain at v0.1.0. The validated platform changes
+are recorded with this follow-up, without a push, tag or release publication.
+
 ## Limits
 
 Headless runs do not validate macOS window decorations, desktop focus behavior,
@@ -226,10 +320,10 @@ or the user's persistent profile/theme. Browser policies may reject
 `window.close()` for ordinary tabs that were not script-opened. Tests deliberately
 use script-opened pages for deterministic lifecycle checks.
 
-Linux, Windows, WSL, Vim, remote-forwarding setups and Neovim versions other than
-0.12.6 have not been run locally. CI targets Neovim 0.12.2 on Ubuntu but is not a
-verified result yet. The MINGW cygpath and Windows image-root fixes have source
-review only. External PlantUML service rendering and PDF/print output were not
+Native Windows, WSL, remote-forwarding setups and editor versions outside the
+recorded matrix have not been validated. Vim is not supported. The expanded
+hosted matrix is not a verified result yet. The MINGW cygpath and Windows
+image-root fixes have source review only. External PlantUML service rendering and PDF/print output were not
 browser-tested. Local-image accessibility, legacy diagram dark-mode contrast,
 the recorded `md-it-meta` full-text notice gap and retained older Snap/sequence
 libraries remain follow-up. The asset inventory records available provenance

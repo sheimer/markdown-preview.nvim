@@ -22,8 +22,10 @@ async function until(check, message, timeout = 10000) {
 }
 
 async function session() {
+  const temporaryRoot = process.env.MKDP_TEST_DATA_DIR || os.tmpdir()
+  await fs.mkdir(temporaryRoot, { recursive: true })
   const dir = await fs.realpath(
-    await fs.mkdtemp(path.join(os.tmpdir(), 'markdown-preview-test-'))
+    await fs.mkdtemp(path.join(temporaryRoot, 'markdown-preview-test-'))
   )
   const fixture = path.join(dir, 'documents')
   await fs.mkdir(fixture)
@@ -62,6 +64,7 @@ vim.cmd('filetype on')
         XDG_DATA_HOME: path.join(dir, 'data'),
         XDG_STATE_HOME: path.join(dir, 'state'),
         XDG_CACHE_HOME: path.join(dir, 'cache'),
+        NVIM_APPNAME: 'markdown-preview-test',
         NVIM_LOG_FILE: path.join(dir, 'nvim.log'),
         NVIM_MKDP_LOG_FILE: path.join(dir, 'server.log'),
         NVIM_MKDP_LOG_LEVEL: 'debug'
@@ -93,6 +96,13 @@ vim.cmd('filetype on')
     }
     pending.clear()
   })
+  proc.on('error', (error) => {
+    for (const waiter of pending.values()) {
+      clearTimeout(waiter.timer)
+      waiter.reject(error)
+    }
+    pending.clear()
+  })
   function rpc(method, args) {
     return new Promise((resolve, reject) => {
       const id = ++seq
@@ -114,15 +124,47 @@ vim.cmd('filetype on')
     return lua('return vim.api.nvim_get_current_buf()')
   }
   const launches = () => lua('return vim.g.mkdp_test_urls')
+  let lastMessages = 'Neovim exited before messages were captured'
+  const diagnostics = async () => {
+    if (proc.exitCode === null && proc.signalCode === null)
+      lastMessages = await lua(
+        "return vim.api.nvim_exec2('messages', {output = true}).output"
+      ).catch((error) => 'Could not read Neovim messages: ' + error.message)
+    return { stderr, messages: lastMessages }
+  }
   const launched = async (action) => {
     const before = (await launches()).length
     await action()
-    return until(
-      async () => (await launches())[before],
-      'Browser hook was not called'
-    )
+    try {
+      return await until(
+        async () => (await launches())[before],
+        'Browser hook was not called'
+      )
+    } catch (error) {
+      throw new Error(
+        error.message + '\n' + JSON.stringify(await diagnostics()),
+        { cause: error }
+      )
+    }
   }
   await rpc('nvim_get_api_info', [])
+  // Assert isolation on each OS instead of assuming its stdpath rules match ours.
+  const paths = await lua(
+    "return {vim.fn.stdpath('config'), vim.fn.stdpath('data'), vim.fn.stdpath('state'), vim.fn.stdpath('cache')}"
+  )
+  for (const value of paths) {
+    const relative = path.relative(dir, value)
+    if (
+      path.isAbsolute(relative) ||
+      relative === '..' ||
+      relative.startsWith('..' + path.sep)
+    ) {
+      proc.kill('SIGKILL')
+      throw new Error(
+        'Neovim test state escaped its isolated directory: ' + value
+      )
+    }
+  }
   return {
     root,
     dir,
@@ -134,12 +176,10 @@ vim.cmd('filetype on')
     edit,
     launches,
     launched,
-    diagnostics: async () => ({
-      stderr,
-      messages: await command('messages').catch(() => '')
-    }),
+    diagnostics,
     async shutdown(timeout = 10000) {
       if (proc.exitCode === null) {
+        if (process.env.MKDP_KEEP_TEST_DATA) await diagnostics()
         proc.stdin.write(msgpack.encode([2, 'nvim_command', ['qa!']]))
         await until(
           () => proc.exitCode !== null,
@@ -149,17 +189,36 @@ vim.cmd('filetype on')
       }
     },
     async dispose() {
+      const report = process.env.MKDP_KEEP_TEST_DATA
+        ? await diagnostics()
+        : null
       if (proc.exitCode === null) {
         proc.stdin.write(msgpack.encode([2, 'nvim_command', ['qa!']]))
         try {
           await until(() => proc.exitCode !== null, 'Neovim did not exit', 3000)
         } catch (_) {
           proc.kill('SIGKILL')
+          await until(
+            () => proc.exitCode !== null || proc.signalCode !== null,
+            'Neovim did not exit after termination',
+            3000
+          )
         }
       }
-      if (process.env.MKDP_KEEP_TEST_DATA)
+      if (report) {
+        report.stderr = stderr
+        await fs.writeFile(
+          path.join(dir, 'nvim-diagnostics.json'),
+          JSON.stringify(report, null, 2) + '\n'
+        )
         process.stderr.write('Test data: ' + dir + '\n')
-      else await fs.rm(dir, { recursive: true, force: true })
+      } else
+        await fs.rm(dir, {
+          recursive: true,
+          force: true,
+          maxRetries: 10,
+          retryDelay: 100
+        })
     }
   }
 }

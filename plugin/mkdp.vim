@@ -1,6 +1,6 @@
 " Neovim is the supported editor for this independently maintained fork.
-if !has('nvim-0.10')
-  echoerr 'markdown-preview.nvim requires Neovim 0.10 or newer'
+if !has('nvim-0.12.2')
+  echoerr 'markdown-preview.nvim requires Neovim 0.12.2 or newer'
   finish
 endif
 if exists('g:loaded_markdown_preview')

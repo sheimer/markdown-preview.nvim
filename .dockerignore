@@ -1,0 +1,9 @@
+.git
+node_modules
+app/lib
+app/out
+app/.next
+app/bin
+test-results
+*.log
+.DS_Store

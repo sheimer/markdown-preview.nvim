@@ -10,7 +10,8 @@
     "build": "node scripts/build.js",
     "build-lib": "tsc -p ./",
     "build-app": "node scripts/build.js --frontend",
-    "test": "node --test --test-concurrency=1 test/*.test.cjs"
+    "test": "node scripts/test.js",
+    "test:firefox": "node scripts/test.js --browser firefox"
   },
   "dependencies": {
     "@chemzqm/neovim": "^5.7.9",

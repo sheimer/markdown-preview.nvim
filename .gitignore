@@ -77,3 +77,4 @@ app/bin/
 app/lib/
 app/out/
 *.tsbuildinfo
+test-results/

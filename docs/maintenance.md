@@ -219,6 +219,52 @@ WebAssembly. Other browsers/platforms remain unverified; the ES2020 build target
 is not a promise that newer library APIs are polyfilled. Current checks and
 remaining limits are recorded in [validation](validation.md).
 
+## Fourth follow-up: platform checks and support policy
+
+The platform block fixes the observed hosted-build failure in
+[run 43882058739](https://github.com/sheimer/markdown-preview.nvim/actions/runs/43882058739):
+`ubuntu-latest` selected Ubuntu 26.04, which locked Playwright 1.56.1 could not
+provision. The workflow now pins Ubuntu 24.04 and adds macOS 15 and Windows 2022,
+testing Neovim 0.12.2/0.12.6 with both Chromium and Firefox. Node 24.12.0 and npm
+11.10.0 are explicit. Each checkout has spaces in its directory name. This
+configuration needs hosted results before it establishes support for those OSes.
+
+The local browser suite establishes 0.12.2 as the tested minimum Neovim target;
+the loader, health check and README use that same floor. This is a supported
+baseline, not a claim that every earlier editor version is broken. The new
+`:checkhealth markdown_preview` checks the actual configured Node executable,
+source build and browser hook, replacing the obsolete packaged-executable check.
+
+The portable test runner enumerates files without relying on shell globs and
+supports `npm run test:firefox` on PowerShell as well as POSIX shells. Optional
+reports capture actual runtime/browser versions, exit status, suite output and
+test-owned Neovim logs. Every session asserts that config/data/state/cache paths
+stay inside its temporary directory; cleanup waits for forced child termination
+before removing files and retries transient Windows file locks.
+
+Default server ports are now allocated atomically by the OS rather than chosen
+from a 1000-port clock-derived range. URLs use the actual listening port;
+explicit fixed ports retain their existing behavior and bind-error regression.
+The transport regression no longer overrides the server's chosen port, so it
+guards this isolation contract as well as the stop-during-connection race.
+One additional macOS startup timeout remains unexplained; ten startup/shutdown
+probes passed. Improved diagnostics retain Neovim messages and stderr, and the
+port change is not presented as proof of that timeout's cause.
+
+A pinned test-only Linux container allows local clean-install/build/browser
+validation without touching the installed plugin. WSL has separate Linux-side
+and Windows-browser acceptance instructions; ordinary Linux/native Windows runs
+cannot establish that interoperability. See [platform testing](platform-testing.md)
+for reproducible commands and [validation](validation.md) for completed evidence.
+The expanded hosted matrix and WSL desktop checks remain unverified until run;
+no pushes or new remote runs are required to review these source changes.
+
+The read-only `md-it-meta` notice investigation also checked its parent repository,
+`CaliStyle/markdown-it-meta`, which has no standalone license notice either. The
+gap remains explicit; closing it requires a supplied notice or a separately
+tested dependency replacement. Platform work does not invent license text or
+change frontmatter behavior to remove that dependency incidentally.
+
 ## Focused follow-up
 
 1. Runtime dependency/input hardening is committed as `d1a649b`. Continue refreshing
@@ -226,11 +272,12 @@ remaining limits are recorded in [validation](validation.md).
 2. The esbuild replacement is committed as `b0cad8c`. It removes the old
    frontend-builder dependency graph and OpenSSL compatibility option while
    preserving the rendering stack and per-buffer RPC contract.
-3. Renderer asset maintenance is complete. Keep the manifests and
+3. Renderer asset maintenance is committed as `d46c8b1`. Keep the manifests and
    generated notices aligned when updating packages, and resolve the recorded
    `md-it-meta` full-text notice gap. Mermaid viewer features remain deferred.
-4. Add verified Linux, Windows and WSL browser runs and choose a minimum Neovim
-   version from actual CI coverage. Standalone executable bundles are deferred.
+4. Platform checks are implemented; see [platform testing](platform-testing.md).
+   Verify each hosted matrix result and the separate WSL desktop acceptance
+   before expanding platform support claims. Standalone executable bundles are deferred.
 5. Consider a trust mode for untrusted Markdown and authenticated remote access
    only as separate designs. The current local renderer enables raw HTML and
    resolves relative local documents; preview trusted documents only.

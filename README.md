@@ -13,7 +13,7 @@ workflow or upstream pull request is intended.
 ## Requirements and installation
 
 - **Node.js 24** with **npm 11**, available in Neovim's environment.
-- **Neovim 0.12+** is the initial supported target. See the actual tested versions
+- **Neovim 0.12.2+** is the supported target. See the actual tested versions
   and operating systems in [validation](docs/validation.md).
 - A modern browser with ES modules, dynamic imports and WebAssembly. The default system browser works; no private Lua modules,
   custom application or personal stylesheet is required.
@@ -31,7 +31,7 @@ npm ci
 npm run build
 ```
 
-For example, native `vim.pack` on Neovim 0.12+:
+For example, native `vim.pack` on Neovim 0.12.2+:
 
 ```lua
 vim.pack.add({ 'https://github.com/sheimer/markdown-preview.nvim' })
@@ -45,6 +45,8 @@ can perform that local source build; failures are reported. Keep the root
 This is a source installation. `app/lib` and `app/out` are generated and ignored;
 there are no downloaded upstream executables. Use the root npm lockfile only.
 A checkout without a successful build reports an installation error when opened.
+Run `:checkhealth markdown_preview` to check the source build, Node runtime and
+browser hook without opening a preview.
 
 ## Preview behavior
 
@@ -98,7 +100,7 @@ vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>')
 | `g:mkdp_node_command` | Node executable override (default `node`); must be Node 24 |
 | `g:mkdp_browser` | Browser executable passed to the default platform opener |
 | `g:mkdp_echo_preview_url` | Echo launched URLs when set to `1` |
-| `g:mkdp_port` | Fixed server port; empty chooses a local port |
+| `g:mkdp_port` | Fixed server port; empty or `0` lets the OS allocate a free local port |
 | `g:mkdp_page_title` | Browser title template; `${name}` expands to filename |
 | `g:mkdp_images_path` | Custom image root |
 | `g:mkdp_open_ip` | Override host used in preview URLs |
@@ -131,7 +133,7 @@ npm ci
 npm run build
 npx playwright install chromium firefox
 npm test
-MKDP_TEST_BROWSER=firefox npm test
+npm run test:firefox
 ```
 
 The frontend uses esbuild with React 16 and the existing Markdown/diagram stack.
@@ -147,7 +149,9 @@ remains `npm run build`.
 The browser suite runs a minimal Neovim instance with temporary documents,
 isolated state directories and isolated browser contexts. See
 [validation](docs/validation.md) for the completed checks, exact commands and
-remaining limits. Fixtures are in [fixtures](fixtures).
+remaining limits. [Platform testing](docs/platform-testing.md) covers the CI
+matrix, diagnostic artifacts, isolated Linux container and Windows/WSL commands.
+Fixtures are in [fixtures](fixtures).
 
 Build and generated-asset policy, dependency follow-up and release gates are in
 [maintenance](docs/maintenance.md). The renderer retains React 16 and the existing Markdown/math/diagram libraries.
@@ -174,9 +178,10 @@ links and absolute filesystem links are not rewritten. Relative document links
 require a named source buffer. Ordinary browser tabs can refuse script-initiated
 closure; browser policy controls whether windows close automatically.
 
-Linux, Windows and WSL remain design targets; compatibility must be verified on
-those systems. Vim compatibility is no longer a supported target. Remote and
-headless SSH browser forwarding require user configuration. Legacy dependencies
+Platform support follows the recorded checks in [validation](docs/validation.md),
+not the presence of an OS in the CI matrix. Windows and WSL remain unverified
+targets until their runs pass. Vim compatibility is no longer a supported target.
+Remote and headless SSH browser forwarding require user configuration. Legacy dependencies
 and bundled assets require the focused follow-up listed in maintenance.
 
 ## Attribution and licenses

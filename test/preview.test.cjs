@@ -362,6 +362,10 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
     await step(
       'wide table values remain complete, selectable and keyboard scrollable',
       async () => {
+        // Font metrics differ by OS. Use a narrow window where this fixture
+        // actually needs overflow instead of relying on one platform's fonts.
+        await table.bringToFront()
+        await table.setViewportSize({ width: 600, height: 800 })
         const wrapper = table.locator('.md-table-scroll').first()
         assert.equal(await wrapper.getAttribute('tabindex'), '0')
         assert.ok(
@@ -429,6 +433,7 @@ vim.api.nvim_buf_set_lines(b, 0, -1, false, lines)`,
           ),
           'The document itself must not overflow horizontally'
         )
+        await table.setViewportSize({ width: 1100, height: 800 })
       }
     )
 
@@ -848,6 +853,10 @@ test(
         status === -1 && /EADDRINUSE|address already in use/i.test(messages)
       )
     }, 'The failed server must exit and report the occupied port')
+    assert.match(
+      (await nvim.diagnostics()).messages,
+      /EADDRINUSE|address already in use/i
+    )
     assert.equal((await nvim.launches()).length, 0)
     await nvim.shutdown(3000)
   }

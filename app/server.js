@@ -131,11 +131,13 @@ exports.run = function () {
     const openToTheWord = await plugin.nvim.getVar('mkdp_open_to_the_world')
     const host = openToTheWord ? '0.0.0.0' : '127.0.0.1'
     let port = await plugin.nvim.getVar('mkdp_port')
-    port = port || (8080 + Number(`${Date.now()}`.slice(-3)))
+    // Let the OS reserve a free port atomically for independent editor instances.
+    port = port || 0
     server.listen({
       host,
       port
     }, function () {
+      port = server.address().port
       logger.info('server run: ', port)
       function refreshPage ({ bufnr, data }) {
         logger.info('refresh page: ', bufnr)

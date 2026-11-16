@@ -13,7 +13,12 @@ test(
     t.after(() => nvim.dispose())
     const engine =
       process.env.MKDP_TEST_BROWSER === 'firefox' ? firefox : chromium
-    const browser = await engine.launch({ headless: true })
+    const browser = await engine.launch({
+      headless: true,
+      ...(process.env.MKDP_TEST_BROWSER_EXECUTABLE
+        ? { executablePath: process.env.MKDP_TEST_BROWSER_EXECUTABLE }
+        : {})
+    })
     t.after(() => browser.close())
     const page = await browser.newPage()
     const errors = []
@@ -149,7 +154,12 @@ test(
     t.after(() => nvim.dispose())
     const engine =
       process.env.MKDP_TEST_BROWSER === 'firefox' ? firefox : chromium
-    const browser = await engine.launch({ headless: true })
+    const browser = await engine.launch({
+      headless: true,
+      ...(process.env.MKDP_TEST_BROWSER_EXECUTABLE
+        ? { executablePath: process.env.MKDP_TEST_BROWSER_EXECUTABLE }
+        : {})
+    })
     t.after(() => browser.close())
     const page = await browser.newPage()
     let release

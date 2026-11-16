@@ -2,20 +2,52 @@ name: Checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
-  baseline:
-    runs-on: ubuntu-latest
+  platforms:
+    name: ${{ matrix.os }} / Neovim ${{ matrix.neovim }} / ${{ matrix.browser }}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        # Keep OS releases compatible with the locked Playwright distribution.
+        # ubuntu-latest moved to 26.04 before Playwright 1.56 supported it.
+        os: [ubuntu-24.04, macos-15, windows-2022]
+        neovim: [v0.12.2, v0.12.6]
+        browser: [chromium, firefox]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: plugin with spaces
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24.12.0"
           cache: npm
+          cache-dependency-path: plugin with spaces/package-lock.json
       - uses: rhysd/action-setup-vim@v1
+        id: neovim
         with:
-          version: v0.12.2
+          version: ${{ matrix.neovim }}
           neovim: true
+      - run: npm install --global npm@11.10.0
       - run: npm ci --no-audit --no-fund
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm test
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm test -- --report-dir test-results
+        env:
+          NVIM: ${{ steps.neovim.outputs.executable }}
+          MKDP_TEST_BROWSER: ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: checks-${{ matrix.os }}-${{ matrix.neovim }}-${{ matrix.browser }}
+          path: plugin with spaces/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+    defaults:
+      run:
+        working-directory: plugin with spaces

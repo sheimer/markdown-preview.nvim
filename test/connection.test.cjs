@@ -18,7 +18,8 @@ test(
       sockets,
       actions,
       browser,
-      requested = 1
+      requested = 1,
+      listenOptions
     let releaseLoaded, enteredLoaded
     const loaded = new Promise((resolve) => {
       releaseLoaded = resolve
@@ -65,9 +66,10 @@ test(
             createServer(handler) {
               server = http.createServer(handler)
               const listen = server.listen.bind(server)
-              // Always let the OS allocate an isolated port for this transport test.
-              server.listen = (options, callback) =>
-                listen({ ...options, port: 0 }, callback)
+              server.listen = (options, callback) => {
+                listenOptions = options
+                return listen(options, callback)
+              }
               return server
             }
           }
@@ -105,6 +107,12 @@ test(
       () => actions && server.listening,
       'Preview server did not initialize'
     )
+    assert.equal(
+      listenOptions.port,
+      0,
+      'Default previews must ask the OS for a free port'
+    )
+    assert.ok(server.address().port > 0)
     browser = clientIO('http://127.0.0.1:' + server.address().port, {
       query: { bufnr: '1' },
       transports: ['websocket'],

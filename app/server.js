@@ -46,34 +46,44 @@ exports.run = function () {
     routes(req, res)
   })
 
+  server.on('error', (error) => {
+    logger.error('Preview server failed: ', error)
+    // A bind failure cannot recover in this process. Exit so Neovim can retry
+    // and never leave an uninitialized RPC application blocking editor shutdown.
+    process.stderr.write('[markdown-preview.nvim] Cannot start preview server: ' + error.message + '\n', () => process.exit(1))
+  })
+
   // websocket server
   const io = websocket(server)
 
   io.on('connection', async (client) => {
     const { handshake = { query: {} } } = client
-    const bufnr = handshake.query.bufnr
-
-    // Register before awaiting RPC calls, including a disconnect during loading.
-    client.on('disconnect', function () {
-      logger.info('disconnect: ', client.id)
-      clients[bufnr] = (clients[bufnr] || []).filter(c => c.id !== client.id)
-      // update vim variable
-      update_clients_active_var();
-    })
-    const requested = await plugin.nvim.call('getbufvar', [Number(bufnr), 'mkdp_preview_requested', 1])
-    const loaded = await plugin.nvim.call('bufloaded', [Number(bufnr)])
-    if (!Number(requested) || !loaded) {
-      client.emit('close_page')
+    const bufnr = Number(handshake.query.bufnr)
+    if (!Number.isSafeInteger(bufnr) || bufnr < 1) {
+      client.disconnect(true)
       return
     }
-    if (!client.connected) return
-    plugin.nvim.call('setbufvar', [Number(bufnr), 'mkdp_preview_pending', 0])
-    logger.info('client connect: ', client.id, bufnr)
 
+    // Register before awaiting RPC calls so stop/delete can see in-flight clients.
+    const removeClient = () => {
+      clients[bufnr] = (clients[bufnr] || []).filter(c => c.id !== client.id)
+      update_clients_active_var()
+    }
+    client.on('disconnect', removeClient)
     clients[bufnr] = clients[bufnr] || []
     clients[bufnr].push(client)
-    // update vim variable
-    update_clients_active_var();
+
+    const requested = await plugin.nvim.call('getbufvar', [bufnr, 'mkdp_preview_requested', 0])
+    const loaded = await plugin.nvim.call('bufloaded', [bufnr])
+    if (!Number(requested) || !loaded || !(clients[bufnr] || []).includes(client)) {
+      client.emit('close_page')
+      removeClient()
+      return
+    }
+    if (!client.connected) return removeClient()
+    plugin.nvim.call('setbufvar', [bufnr, 'mkdp_preview_pending', 0])
+    logger.info('client connect: ', client.id, bufnr)
+    update_clients_active_var()
 
     const buffers = await plugin.nvim.buffers
     buffers.forEach(async (buffer) => {
@@ -88,6 +98,7 @@ exports.run = function () {
         const name = await buffer.name
         const content = await buffer.getLines()
         const currentBuffer = await plugin.nvim.buffer
+        if (!client.connected || !(clients[bufnr] || []).includes(client)) return
         client.emit('refresh_content', {
           options,
           isActive: currentBuffer.id === buffer.id,

@@ -10,7 +10,16 @@ function! s:on_stderr(chan_id, msgs, ...) abort
   call mkdp#util#echo_messages('Error', a:msgs)
 endfunction
 function! s:on_exit(chan_id, code, ...) abort
-  let s:mkdp_channel_id = s:is_vim ? v:null : -1
+  if a:chan_id ==# s:mkdp_channel_id
+    let s:mkdp_channel_id = s:is_vim ? v:null : -1
+    let g:mkdp_preview_ready = 0
+    let g:mkdp_preview_buffers = []
+    for l:buf in getbufinfo()
+      if getbufvar(l:buf.bufnr, 'mkdp_preview_pending', 0) ==# 1
+        call setbufvar(l:buf.bufnr, 'mkdp_preview_pending', 0)
+      endif
+    endfor
+  endif
 endfunction
 
 function! s:start_vim_server(cmd) abort
@@ -75,7 +84,10 @@ function! mkdp#rpc#stop_server() abort
     if s:mkdp_channel_id !=# v:null
       let l:status = job_status(s:mkdp_channel_id)
       if l:status ==# 'run'
-        call mkdp#rpc#request(s:mkdp_channel_id, 'close_all_pages')
+        try
+          call mkdp#rpc#request(s:mkdp_channel_id, 'close_all_pages')
+        catch /.*/
+        endtry
         try
           call job_stop(s:mkdp_channel_id)
         catch /.*/
@@ -85,14 +97,20 @@ function! mkdp#rpc#stop_server() abort
     let s:mkdp_channel_id = v:null
   else
     if s:mkdp_channel_id !=# -1
-      call rpcrequest(s:mkdp_channel_id, 'close_all_pages')
+      let l:channel = s:mkdp_channel_id
       try
-        call jobstop(s:mkdp_channel_id)
+        call rpcrequest(l:channel, 'close_all_pages')
+      catch /.*/
+      endtry
+      try
+        call jobstop(l:channel)
       catch /.*/
       endtry
     endif
     let s:mkdp_channel_id = -1
   endif
+  let g:mkdp_preview_ready = 0
+  let g:mkdp_preview_buffers = []
   let b:MarkdownPreviewToggleBool = 0
 endfunction
 

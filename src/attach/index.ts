@@ -33,6 +33,7 @@ export default function(options: Attach): IPlugin {
   const nvim: NeovimClient = attach(options)
 
   nvim.on('notification', async (method: string, args: any[]) => {
+    if (!app) return
     const opts = args[0] || args
     const bufnr = opts.bufnr
     const buffers = await nvim.buffers
@@ -76,10 +77,14 @@ export default function(options: Attach): IPlugin {
   })
 
   nvim.on('request', (method: string, args: any, resp: any) => {
-    if (method === 'close_all_pages') {
-      app.closeAllPages()
+    try {
+      if (method === 'close_all_pages' && app) app.closeAllPages()
+    } catch (error) {
+      logger.error('request: ', method, error)
+    } finally {
+      // Neovim must receive its reply even before HTTP startup completes.
+      resp.send()
     }
-    resp.send()
   })
 
   nvim.channelId

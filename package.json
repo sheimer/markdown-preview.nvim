@@ -1,17 +1,16 @@
 {
   "name": "markdown-preview",
-  "version": "0.0.10",
-  "description": "markdown preview plugin for (neo)vim",
-  "bin": "./app/server.js",
-  "repository": "https://github.com/iamcco/markdown-preview.nvim.git",
+  "version": "0.1.0",
+  "description": "Independently maintained Neovim Markdown preview",
+  "repository": "https://github.com/sheimer/markdown-preview.nvim.git",
   "author": "年糕小豆汤 <ooiss@qq.com>",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "watch": "tsc -w -p ./",
-    "build-app": "cd app && rm -rf ./.next && next build && next export",
+    "build": "node scripts/build.js",
     "build-lib": "tsc -p ./",
-    "build": "tsc -p ./ && cd app && rm -rf ./.next && next build && next export && yarn && pkg --targets node16-linux-x64,node16-macos-x64,node16-win-x64 --out-path ./bin . && rm -rf ./node_modules ./.next"
+    "build-app": "node scripts/build.js --frontend",
+    "test": "node --test --test-concurrency=1 test/*.test.cjs"
   },
   "dependencies": {
     "@chemzqm/neovim": "^5.7.9",
@@ -32,17 +31,19 @@
     "plantuml-encoder": "^1.4.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
-    "socket.io": "^2.1.1",
-    "socket.io-client": "^2.1.1"
+    "socket.io": "2.4.1",
+    "socket.io-client": "^2.1.1",
+    "tslib": "1.14.1"
   },
   "devDependencies": {
     "@types/node": "16",
-    "pkg": "^5.6.0",
     "prettier": "^2.6.2",
-    "tslint": "^6.1.3",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.3.0",
     "typescript": "^4.6.4",
-    "yuuko-tsconfig": "^1.0.0"
-  }
+    "playwright": "1.56.1"
+  },
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "packageManager": "npm@11.10.0"
 }

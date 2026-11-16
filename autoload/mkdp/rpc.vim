@@ -38,13 +38,21 @@ function! s:start_vim_server(cmd) abort
 endfunction
 
 function! mkdp#rpc#start_server() abort
-  let l:mkdp_server_script = s:mkdp_root_dir . '/app/bin/markdown-preview-' . mkdp#util#get_platform()
-  if executable(l:mkdp_server_script)
-    let l:cmd = [l:mkdp_server_script, '--path', s:mkdp_root_dir . '/app/server.js']
-  elseif executable('node')
-    let l:mkdp_server_script = s:mkdp_root_dir . '/app/index.js'
-    let l:cmd = ['node', l:mkdp_server_script, '--path', s:mkdp_root_dir . '/app/server.js']
+  let l:node = get(g:, 'mkdp_node_command', 'node')
+  if !executable(l:node)
+    call mkdp#util#echo_messages('Error', 'Markdown Preview requires Node.js 24 on PATH (or g:mkdp_node_command).')
+    return
   endif
+  if !filereadable(s:mkdp_root_dir . '/app/lib/attach/index.js') || !filereadable(s:mkdp_root_dir . '/app/out/index.html')
+    call mkdp#util#echo_messages('Error', 'Markdown Preview is not built. Run npm ci && npm run build in ' . s:mkdp_root_dir)
+    return
+  endif
+  let l:version = system([l:node, '-p', 'process.versions.node.split(".")[0]'])
+  if trim(l:version) !=# '24'
+    call mkdp#util#echo_messages('Error', 'Markdown Preview requires Node.js 24; found ' . trim(l:version))
+    return
+  endif
+  let l:cmd = [l:node, s:mkdp_root_dir . '/app/index.js']
   if exists('l:cmd')
     if s:is_vim
       call s:start_vim_server(l:cmd)
@@ -58,7 +66,7 @@ function! mkdp#rpc#start_server() abort
       let s:mkdp_channel_id = jobstart(l:cmd, l:nvim_optons)
     endif
   else
-    call mkdp#util#echo_messages('Error', 'Pre build and node is not found')
+    call mkdp#util#echo_messages('Error', 'Node.js 24 is not found')
   endif
 endfunction
 

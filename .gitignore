@@ -73,3 +73,8 @@ typings/
 
 app/.next/
 app/bin/
+
+# Generated locally with npm run build; never commit bundles.
+app/lib/
+app/out/
+*.tsbuildinfo

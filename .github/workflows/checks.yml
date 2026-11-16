@@ -1,0 +1,21 @@
+name: Checks
+on:
+  push:
+  pull_request:
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          version: v0.12.2
+          neovim: true
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm test

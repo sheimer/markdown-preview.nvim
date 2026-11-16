@@ -1,8 +1,6 @@
-// change cwd to ./app
-if (!/^(\/|C:\\)snapshot/.test(__dirname)) {
-  process.chdir(__dirname)
-} else {
-  process.chdir(process.execPath.replace(/(markdown-preview.nvim.*?app).+?$/, '$1'))
+if (Number(process.versions.node.split('.')[0]) !== 24) {
+  throw new Error('Markdown Preview requires Node.js 24.')
 }
-
-require('./lib/app')
+// Run from the installed plugin directory, independent of the editor's cwd.
+process.chdir(__dirname)
+require('./server').run()

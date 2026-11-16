@@ -38,6 +38,8 @@ export default function(options: Attach): IPlugin {
     const buffers = await nvim.buffers
     const buffer = buffers.find(b => b.id === bufnr)
     if (method === 'refresh_content') {
+      // The buffer may have been unloaded while this notification was queued.
+      if (!buffer || !(await buffer.valid) || !(await nvim.call('bufloaded', [bufnr]))) return
       const winline = await nvim.call('winline')
       const currentWindow = await nvim.window
       const winheight = await nvim.call('winheight', currentWindow.id)

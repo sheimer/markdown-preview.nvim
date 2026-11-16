@@ -1,6 +1,4 @@
 let s:mkdp_root_dir = expand('<sfile>:h:h:h')
-let s:pre_build = s:mkdp_root_dir . '/app/bin/markdown-preview-'
-let s:package_file = s:mkdp_root_dir . '/package.json'
 
 " echo message
 function! mkdp#util#echo_messages(hl, msgs)
@@ -34,17 +32,7 @@ endfunction
 
 " open preview page
 function! mkdp#util#open_preview_page() abort
-  if get(s:, 'try_id', '') !=# ''
-    return
-  endif
-  let l:server_status = mkdp#rpc#get_server_status()
-  if l:server_status ==# -1
-    call mkdp#rpc#start_server()
-  elseif l:server_status ==# 0
-    let s:try_id = timer_start(1000, function('s:try_open_preview_page'))
-  else
-    call mkdp#util#open_browser()
-  endif
+  lua require('markdown_preview').open()
 endfunction
 
 " auto refetch combine preview
@@ -61,9 +49,7 @@ function! mkdp#util#open_browser() abort
 endfunction
 
 function! mkdp#util#stop_preview() abort
-  let g:mkdp_clients_active = 0
-  " TODO: delete autocmd
-  call mkdp#rpc#stop_server()
+  lua require('markdown_preview').close()
 endfunction
 
 function! mkdp#util#get_platform() abort
@@ -126,71 +112,28 @@ function! mkdp#util#open_terminal(opts) abort
   return bufnr
 endfunction
 
-function! s:markdown_preview_installed(status, ...) abort
-  if a:status != 0
-    call mkdp#util#echo_messages('Error', '[markdown-preview]: install fail')
-    return
-  endif
-  echo '[markdown-preview.nvim]: install completed'
-endfunction
-
-function! s:trim(str) abort
-  return substitute(a:str, '\v^(\s|\\n)*|(\s|\\n)*$', '', 'g')
-endfunction
-
+" Compatibility entry points build this checkout; no upstream binaries/downloads.
 function! mkdp#util#install(...)
-  let l:version = mkdp#util#pre_build_version()
-  let l:info = json_decode(join(readfile(s:mkdp_root_dir . '/package.json'), ''))
-  if s:trim(l:version) ==# s:trim(l:info.version)
-    return
-  endif
-  let obj = json_decode(join(readfile(s:package_file)))
-  let cmd = (mkdp#util#get_platform() ==# 'win' ? 'install.cmd' : './install.sh') . ' v'.obj['version']
-  if get(a:, '1', v:false) ==# v:true
-    execute 'lcd ' . s:mkdp_root_dir . '/app'
-    execute '!' . cmd
-  else
-    call mkdp#util#open_terminal({
-          \ 'cmd': cmd,
-          \ 'cwd': s:mkdp_root_dir . '/app',
-          \ 'Callback': function('s:markdown_preview_installed')
-          \})
-    wincmd p
-  endif
+  call mkdp#util#install_sync()
 endfunction
 
 function! mkdp#util#install_sync(...)
-  if get(a:, '1', v:false) ==# v:true
-    silent call mkdp#util#install(v:true)
-  else
-    call mkdp#util#install(v:true)
+  let l:npm = has('win32') ? 'npm.cmd' : 'npm'
+  if !executable(l:npm)
+    throw 'Markdown Preview requires Node.js 24 and npm 11. Run npm ci && npm run build in the plugin directory.'
   endif
-endfunction
-
-function! mkdp#util#pre_build_version() abort
-  let l:pre_build = s:pre_build . mkdp#util#get_platform()
-  if has('win32') || has('win64')
-    let l:pre_build .= '.exe'
+  let l:output = system([l:npm, '--prefix', s:mkdp_root_dir, 'ci', '--no-audit', '--no-fund'])
+  if v:shell_error
+    throw 'Markdown Preview npm ci failed: ' . l:output
   endif
-  if filereadable(l:pre_build)
-    let l:info = system(l:pre_build . ' --version')
-    if l:info ==# ''
-      call mkdp#util#echo_messages('Type', "[markdown-preview.nvim]: Can not execute pre build binary bundle to get version, will download latest pre build binary bundle")
-      return ''
-    endif
-    let l:info = split(l:info, '\n')
-    return l:info[0]
+  let l:output = system([l:npm, '--prefix', s:mkdp_root_dir, 'run', 'build'])
+  if v:shell_error
+    throw 'Markdown Preview build failed: ' . l:output
   endif
-  return ''
+  echo 'Markdown Preview build completed. Restart previews to use the new version.'
 endfunction
 
 function! mkdp#util#toggle_preview() abort
-    if !get(b:, 'MarkdownPreviewToggleBool')
-        call mkdp#util#open_preview_page()
-        let b:MarkdownPreviewToggleBool=1
-    else
-        call mkdp#util#stop_preview()
-        let b:MarkdownPreviewToggleBool=0
-    endif
+  lua require('markdown_preview').toggle()
 endfunction
 

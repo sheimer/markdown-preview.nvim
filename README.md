@@ -159,9 +159,10 @@ matrix, diagnostic artifacts, isolated Linux container and Windows/WSL commands.
 Fixtures are in [fixtures](fixtures).
 
 Build and generated-asset policy, dependency follow-up and release gates are in
-[maintenance](docs/maintenance.md). The renderer retains React 16 and the existing Markdown/math/diagram libraries.
-Broader platform verification, continued asset/dependency upkeep and executable
-bundles remain follow-up work. [Third-party notices](THIRD_PARTY_NOTICES.md)
+[maintenance](docs/maintenance.md). The [roadmap](ROADMAP.md) distinguishes
+routine maintenance, optional polish and deferred features. The renderer retains
+React 16 and the existing Markdown/math/diagram libraries.
+[Third-party notices](THIRD_PARTY_NOTICES.md)
 record the renderer asset licenses and the replacement of the legacy metadata
 dependency with a plugin-owned adapter.
 

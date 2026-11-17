@@ -417,9 +417,21 @@ module inventory has no full-text notice gaps. Repeated builds remain checked
 for byte-identical output. The retired dependency's special Markdown-It CommonJS
 alias and package-specific notice exception are removed.
 
-The prior twelve-job hosted result applies to `6d59bef`, before this follow-up.
-The new frontmatter source still needs its own hosted matrix result after review
-and commit. The installed plugin and dotfiles are not migrated by this change.
+### Hosted frontmatter matrix (2026-11-17)
+
+[Run 44110039196, attempt 1](https://github.com/sheimer/markdown-preview.nvim/actions/runs/44110039196/attempts/1)
+tested the pushed frontmatter revision `e4eb334`. All twelve jobs passed, and
+their logs each record 33 tests, 33 passes, zero failures and zero skipped tests.
+
+| Hosted environment | Neovim | Browsers | Result |
+| --- | --- | --- | --- |
+| Ubuntu 24.04 / x86-64 | 0.12.2, 0.12.6 | Chromium, Firefox | Four jobs, 33/33 checks each |
+| macOS 15 Intel / x86-64 | 0.12.2, 0.12.6 | Chromium, Firefox | Four jobs, 33/33 checks each |
+| Windows Server 2022 / x86-64 | 0.12.2, 0.12.6 | Chromium, Firefox | Four jobs, 33/33 checks each |
+
+This brings hosted acceptance up to the frontmatter change. It does not extend
+desktop/WSL coverage or establish the causes of the two earlier intermittent
+failures. Those remain on the [roadmap watchlist](../ROADMAP.md#watchlist-investigate-only-if-a-failure-recurs).
 
 ## Limits
 

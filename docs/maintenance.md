@@ -308,22 +308,13 @@ contract. Native Viz/ELK provenance limits remain separately documented in
 [third-party notices](../THIRD_PARTY_NOTICES.md). Current acceptance evidence is
 recorded in [validation](validation.md).
 
-## Focused follow-up
+## Maintenance after the baseline
 
-1. Runtime dependency/input hardening is committed as `d1a649b`. Continue refreshing
-   advisory data and retain the browser behavior suite as the acceptance contract.
-2. The esbuild replacement is committed as `b0cad8c`. It removes the old
-   frontend-builder dependency graph and OpenSSL compatibility option while
-   preserving the rendering stack and per-buffer RPC contract.
-3. Renderer asset maintenance is committed as `d46c8b1`. Keep the manifests and
-   generated notices aligned when updating packages. The frontmatter follow-up
-   removes the `md-it-meta` notice gap. Mermaid viewer features remain deferred.
-4. Platform checks are implemented; see [platform testing](platform-testing.md).
-   The full Ubuntu/macOS Intel/Windows hosted matrix passes. WSL desktop acceptance
-   remains open before expanding support claims. Standalone executable bundles are deferred.
-5. Consider a trust mode for untrusted Markdown and authenticated remote access
-   only as separate designs. The current local renderer enables raw HTML and
-   resolves relative local documents; preview trusted documents only.
+The runtime, builder, renderer-asset, platform and frontmatter follow-ups above
+are complete. The [roadmap](../ROADMAP.md) is the current list of maintenance
+priorities, optional polish and deferred designs. It does not schedule another
+implementation package. Earlier intermittent failures stay on a watchlist for
+recurrence, with their diagnostic evidence retained in [validation](validation.md).
 
 Before a local version tag, run the documented clean-install/build and browser
 checks and record their environment and limits in `docs/validation.md`. Tags

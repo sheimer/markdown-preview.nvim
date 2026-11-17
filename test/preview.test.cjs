@@ -235,7 +235,10 @@ test(
           [sourceBuf, true, 0]
         )
         assert.equal(
-          await nvim.lua('return vim.api.nvim_buf_get_name(...)', [targetBuf]),
+          // Neovim can report forward slashes on Windows; compare native paths.
+          path.normalize(
+            await nvim.lua('return vim.api.nvim_buf_get_name(...)', [targetBuf])
+          ),
           path.join(
             nvim.fixture,
             'markdown-preview-links/detail with spaces.md'

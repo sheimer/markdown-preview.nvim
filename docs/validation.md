@@ -302,9 +302,10 @@ The previously pushed source `d46c8b1` has an observed hosted failure in
 It failed while installing browser dependencies: the runner selected Ubuntu
 26.04, which Playwright 1.56.1 did not support. This is distinct from a plugin
 test failure. The revised matrix pins Ubuntu 24.04, macOS 15 and Windows 2022,
-each with Neovim 0.12.2/0.12.6 and Chromium/Firefox. **That new hosted matrix has
-not run yet.** Source checks and local results do not establish native Windows,
-Linux x86-64 or WSL desktop interoperability. The separate acceptance steps are
+each with Neovim 0.12.2/0.12.6 and Chromium/Firefox. At the package 4 commit that
+hosted matrix had not run; the next section records its first results. Local
+results alone do not establish native Windows, Linux x86-64 or WSL desktop
+interoperability. The separate acceptance steps are
 in [platform testing](platform-testing.md).
 
 The `md-it-meta` notice gap was rechecked, including its parent repository, with
@@ -312,6 +313,39 @@ no full-text notice found. It remains recorded rather than being filled with
 assumed attribution. No frontmatter or dependency replacement is included here.
 The installed plugin/dotfiles remain at v0.1.0. The validated platform changes
 are recorded with this follow-up, without a push, tag or release publication.
+
+## Hosted CI annotations follow-up (2026-11-17)
+
+Inspected [run 43908663860](https://github.com/sheimer/markdown-preview.nvim/actions/runs/43908663860)
+for source `01753e3`, including job conclusions and test logs:
+
+| Hosted target | Neovim / browser combinations | Result |
+| --- | --- | --- |
+| Ubuntu 24.04 / x86-64 | 0.12.2 and 0.12.6, Chromium and Firefox | 29/29 passed in each of four jobs |
+| Windows Server 2022 / x86-64 | Same four combinations | Each stopped at the linked-buffer path assertion; remaining main-scenario assertions did not run |
+| macOS 15 / ARM64 | Same four combinations | No runner acquired; no plugin tests executed |
+
+Every Windows failure showed the same separator-only mismatch between a Neovim
+`D:/.../detail with spaces.md` filename and Node's expected `D:\\...\\detail with spaces.md`.
+The fix applies `path.normalize` to the actual filename before the strict
+comparison, keeping the complete expected path. Eight captured assertion pairs
+(the subtest and parent reports from all four jobs) were replayed locally with
+Node's Windows path implementation and compared equal after normalization;
+different filenames remain distinct. This is a test portability fix, with no
+plugin link-resolution change. It does not establish a complete Windows pass.
+
+With the corrected assertion, the affected navigation/lifecycle file passed
+18/18 checks locally in both Chromium and Firefox on macOS ARM64 with Neovim
+0.12.6 and Node 24.12.0. The revised workflow passed `actionlint` 1.7.12. No
+production rendering or runtime dependency change required a rebuild.
+
+The workflow uses Node 24-based v7 releases of checkout/setup-node/upload-artifact
+to address their action-runtime deprecations. Its macOS target becomes the
+documented `macos-15-intel` x86-64 runner to avoid the reported ARM64 capacity
+constraint. The plugin's runtime remains Node 24.12.0. GitHub's internal-server
+error and runner availability cannot be repaired in plugin source; the revised
+jobs require a new hosted run. The workflow and assertion changes are prepared
+locally; no remote rerun was requested as part of this follow-up.
 
 ## Limits
 
@@ -321,8 +355,9 @@ or the user's persistent profile/theme. Browser policies may reject
 use script-opened pages for deterministic lifecycle checks.
 
 Native Windows, WSL, remote-forwarding setups and editor versions outside the
-recorded matrix have not been validated. Vim is not supported. The expanded
-hosted matrix is not a verified result yet. The MINGW cygpath and Windows
+recorded matrix have not been validated. Vim is not supported. Hosted Ubuntu
+x86-64 is now verified; Windows and hosted macOS matrix coverage remains
+incomplete. The MINGW cygpath and Windows
 image-root fixes have source review only. External PlantUML service rendering and PDF/print output were not
 browser-tested. Local-image accessibility, legacy diagram dark-mode contrast,
 the recorded `md-it-meta` full-text notice gap and retained older Snap/sequence

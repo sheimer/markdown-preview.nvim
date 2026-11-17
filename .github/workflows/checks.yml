@@ -14,16 +14,18 @@ jobs:
       matrix:
         # Keep OS releases compatible with the locked Playwright distribution.
         # ubuntu-latest moved to 26.04 before Playwright 1.56 supported it.
-        os: [ubuntu-24.04, macos-15, windows-2022]
+        # Intel avoids the reported macOS ARM64 runner-capacity constraint.
+        # Local ARM64 acceptance remains recorded separately in validation.md.
+        os: [ubuntu-24.04, macos-15-intel, windows-2022]
         neovim: [v0.12.2, v0.12.6]
         browser: [chromium, firefox]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: plugin with spaces
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24.12.0"
           cache: npm
@@ -41,7 +43,7 @@ jobs:
         env:
           NVIM: ${{ steps.neovim.outputs.executable }}
           MKDP_TEST_BROWSER: ${{ matrix.browser }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
           name: checks-${{ matrix.os }}-${{ matrix.neovim }}-${{ matrix.browser }}

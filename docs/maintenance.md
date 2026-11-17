@@ -256,14 +256,26 @@ validation without touching the installed plugin. WSL has separate Linux-side
 and Windows-browser acceptance instructions; ordinary Linux/native Windows runs
 cannot establish that interoperability. See [platform testing](platform-testing.md)
 for reproducible commands and [validation](validation.md) for completed evidence.
-The expanded hosted matrix and WSL desktop checks remain unverified until run;
-no pushes or new remote runs are required to review these source changes.
+The first hosted run and its follow-up below distinguish passing Ubuntu jobs
+from incomplete Windows and macOS coverage. WSL desktop checks remain unverified.
 
 The read-only `md-it-meta` notice investigation also checked its parent repository,
 `CaliStyle/markdown-it-meta`, which has no standalone license notice either. The
 gap remains explicit; closing it requires a supplied notice or a separately
 tested dependency replacement. Platform work does not invent license text or
 change frontmatter behavior to remove that dependency incidentally.
+
+### Hosted CI follow-up (2026-11-17)
+
+[Run 43908663860](https://github.com/sheimer/markdown-preview.nvim/actions/runs/43908663860)
+at `01753e3` passed all 29 checks in each Ubuntu/x86-64 combination. Windows jobs
+stopped at a separator-only path assertion, now normalized using Node's native
+path implementation. macOS ARM64 jobs never acquired runners; hosted checks now
+use the documented `macos-15-intel` label. GitHub capacity is not guaranteed.
+The three GitHub-maintained actions move to Node 24-based v7 releases, addressing
+their Node 20 annotations without changing the plugin toolchain or acceptance
+criteria. Revised Windows/macOS jobs need a hosted pass; see
+[validation](validation.md#hosted-ci-annotations-follow-up-2026-11-17).
 
 ## Focused follow-up
 
@@ -276,7 +288,7 @@ change frontmatter behavior to remove that dependency incidentally.
    generated notices aligned when updating packages, and resolve the recorded
    `md-it-meta` full-text notice gap. Mermaid viewer features remain deferred.
 4. Platform checks are implemented; see [platform testing](platform-testing.md).
-   Verify each hosted matrix result and the separate WSL desktop acceptance
+   Hosted Ubuntu/x86-64 checks pass. Verify the revised Windows/macOS jobs and WSL desktop acceptance
    before expanding platform support claims. Standalone executable bundles are deferred.
 5. Consider a trust mode for untrusted Markdown and authenticated remote access
    only as separate designs. The current local renderer enables raw HTML and

@@ -10,7 +10,7 @@ Adding a matrix entry is not evidence that the platform works.
 [Checks](../.github/workflows/checks.yml) runs the complete suite for each
 combination of:
 
-- Ubuntu 24.04, macOS 15 and Windows Server 2022.
+- Ubuntu 24.04, macOS 15 Intel and Windows Server 2022.
 - Neovim 0.12.2 and 0.12.6.
 - Chromium and Firefox from locked Playwright 1.56.1.
 
@@ -20,6 +20,21 @@ Jobs fail independently, with at most four running at once. No release is
 published, and workflow permissions are read-only. The OS labels are explicit:
 `ubuntu-latest` selected Ubuntu 26.04 in run `43882058739`, which Playwright
 1.56.1 could not provision. Update the OS/browser versions together deliberately.
+
+[Run 43908663860](https://github.com/sheimer/markdown-preview.nvim/actions/runs/43908663860)
+completed all four Ubuntu/x86-64 combinations successfully.
+Its four Windows jobs stopped at a path assertion comparing Neovim's forward
+slashes with Node's backslashes; the assertion now normalizes the actual path
+using Node's native path implementation. The same run's macOS ARM64 jobs never acquired runners.
+Hosted checks now use `macos-15-intel`, GitHub's documented x86-64 label, to avoid
+that reported ARM64 capacity constraint. Local macOS ARM64 evidence remains
+separate; the revised Windows/macOS jobs still need a successful hosted run.
+
+Checkout, setup-node and upload-artifact now use their Node 24-based v7 actions.
+This changes the action runtime independently of the plugin's pinned Node
+24.12.0/npm 11.10.0 toolchain; it does not suppress deprecation warnings or retry
+failed tests. GitHub's reported internal server error cannot be fixed in plugin
+source, and changing the runner label does not guarantee runner availability.
 
 After a test run, the job uploads `test-results` for seven days. It contains the
 environment/browser version, suite log, exit result and isolated Neovim fixture,

@@ -28,7 +28,12 @@ slashes with Node's backslashes; the assertion now normalizes the actual path
 using Node's native path implementation. The same run's macOS ARM64 jobs never acquired runners.
 Hosted checks now use `macos-15-intel`, GitHub's documented x86-64 label, to avoid
 that reported ARM64 capacity constraint. Local macOS ARM64 evidence remains
-separate; the revised Windows/macOS jobs still need a successful hosted run.
+separate. [Run 44081811310, attempt 2](https://github.com/sheimer/markdown-preview.nvim/actions/runs/44081811310/attempts/2)
+at `6d59bef` completed all twelve jobs, each with 29/29 checks passing. The first
+attempt's two macOS/Firefox jobs executed no steps because runners were not
+allocated. The user's successful rerun closes hosted matrix acceptance; WSL
+desktop interoperability and ordinary desktop launcher/focus behavior remain
+separate checks.
 
 Checkout, setup-node and upload-artifact now use their Node 24-based v7 actions.
 This changes the action runtime independently of the plugin's pinned Node

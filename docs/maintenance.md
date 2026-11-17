@@ -227,7 +227,7 @@ The platform block fixes the observed hosted-build failure in
 provision. The workflow now pins Ubuntu 24.04 and adds macOS 15 and Windows 2022,
 testing Neovim 0.12.2/0.12.6 with both Chromium and Firefox. Node 24.12.0 and npm
 11.10.0 are explicit. Each checkout has spaces in its directory name. This
-configuration needs hosted results before it establishes support for those OSes.
+configuration is backed by the hosted results recorded below.
 
 The local browser suite establishes 0.12.2 as the tested minimum Neovim target;
 the loader, health check and README use that same floor. This is a supported
@@ -256,8 +256,8 @@ validation without touching the installed plugin. WSL has separate Linux-side
 and Windows-browser acceptance instructions; ordinary Linux/native Windows runs
 cannot establish that interoperability. See [platform testing](platform-testing.md)
 for reproducible commands and [validation](validation.md) for completed evidence.
-The first hosted run and its follow-up below distinguish passing Ubuntu jobs
-from incomplete Windows and macOS coverage. WSL desktop checks remain unverified.
+The first hosted run and its follow-up below record the path assertion fix and
+subsequent complete matrix pass. WSL desktop checks remain unverified.
 
 The read-only `md-it-meta` notice investigation also checked its parent repository,
 `CaliStyle/markdown-it-meta`, which has no standalone license notice either. The
@@ -274,7 +274,10 @@ path implementation. macOS ARM64 jobs never acquired runners; hosted checks now
 use the documented `macos-15-intel` label. GitHub capacity is not guaranteed.
 The three GitHub-maintained actions move to Node 24-based v7 releases, addressing
 their Node 20 annotations without changing the plugin toolchain or acceptance
-criteria. Revised Windows/macOS jobs need a hosted pass; see
+criteria. [Run 44081811310, attempt 2](https://github.com/sheimer/markdown-preview.nvim/actions/runs/44081811310/attempts/2)
+at `6d59bef` passed all twelve jobs, with 29/29 checks in each. The first attempt's
+two macOS/Firefox jobs never acquired runners; the user-triggered rerun completed
+without another source change. Hosted matrix acceptance is complete; see
 [validation](validation.md#hosted-ci-annotations-follow-up-2026-11-17).
 
 ## Focused follow-up
@@ -288,8 +291,8 @@ criteria. Revised Windows/macOS jobs need a hosted pass; see
    generated notices aligned when updating packages, and resolve the recorded
    `md-it-meta` full-text notice gap. Mermaid viewer features remain deferred.
 4. Platform checks are implemented; see [platform testing](platform-testing.md).
-   Hosted Ubuntu/x86-64 checks pass. Verify the revised Windows/macOS jobs and WSL desktop acceptance
-   before expanding platform support claims. Standalone executable bundles are deferred.
+   The full Ubuntu/macOS Intel/Windows hosted matrix passes. WSL desktop acceptance
+   remains open before expanding support claims. Standalone executable bundles are deferred.
 5. Consider a trust mode for untrusted Markdown and authenticated remote access
    only as separate designs. The current local renderer enables raw HTML and
    resolves relative local documents; preview trusted documents only.

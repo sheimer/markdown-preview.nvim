@@ -178,9 +178,9 @@ links and absolute filesystem links are not rewritten. Relative document links
 require a named source buffer. Ordinary browser tabs can refuse script-initiated
 closure; browser policy controls whether windows close automatically.
 
-Platform support follows the recorded checks in [validation](docs/validation.md),
-not the presence of an OS in the CI matrix. Windows and WSL remain unverified
-targets until their runs pass. Vim compatibility is no longer a supported target.
+The hosted matrix passes on Ubuntu 24.04, macOS 15 Intel and Windows Server 2022;
+exact tested versions and limits are recorded in [validation](docs/validation.md).
+WSL desktop interoperability remains unverified. Vim compatibility is no longer a supported target.
 Remote and headless SSH browser forwarding require user configuration. Legacy dependencies
 and bundled assets require the focused follow-up listed in maintenance.
 

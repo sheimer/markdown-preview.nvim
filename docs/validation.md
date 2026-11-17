@@ -344,8 +344,32 @@ to address their action-runtime deprecations. Its macOS target becomes the
 documented `macos-15-intel` x86-64 runner to avoid the reported ARM64 capacity
 constraint. The plugin's runtime remains Node 24.12.0. GitHub's internal-server
 error and runner availability cannot be repaired in plugin source; the revised
-jobs require a new hosted run. The workflow and assertion changes are prepared
-locally; no remote rerun was requested as part of this follow-up.
+jobs required a new hosted run. The successful rerun is recorded below; the agent
+did not initiate it or change GitHub settings.
+
+## Completed hosted matrix (2026-11-17)
+
+[Run 44081811310, attempt 2](https://github.com/sheimer/markdown-preview.nvim/actions/runs/44081811310/attempts/2)
+for source `6d59befcb82b7b59a6a269ef4f7150bdc0cba2bd` completed successfully.
+All twelve job conclusions and their test totals were verified from the run logs:
+
+| Hosted target | Neovim versions | Browsers | Result |
+| --- | --- | --- | --- |
+| Ubuntu 24.04 / x86-64 | 0.12.2, 0.12.6 | Chromium, Firefox | Four jobs, 29/29 checks each |
+| macOS 15 Intel / x86-64 | 0.12.2, 0.12.6 | Chromium, Firefox | Four jobs, 29/29 checks each |
+| Windows Server 2022 / x86-64 | 0.12.2, 0.12.6 | Chromium, Firefox | Four jobs, 29/29 checks each |
+
+Attempt 1 passed ten jobs. The remaining two macOS/Firefox jobs executed zero
+steps after failing to acquire hosted runners; GitHub also reported an internal
+server error. The user triggered attempt 2 on the same commit, and every job
+passed. This retry addresses runner allocation, rather than replacing a failing
+plugin-test result. No test was skipped or made optional to obtain the pass.
+
+This closes hosted matrix acceptance, including the Windows path assertion
+correction and the Node 24 action-runtime updates. It does not establish WSL
+desktop interoperability, general desktop focus/default-launcher behavior, or
+the cause of the earlier intermittent startup and Firefox DOM timeouts. Those
+limits remain explicit alongside the independent local ARM64 results above.
 
 ## Limits
 
@@ -354,10 +378,10 @@ or the user's persistent profile/theme. Browser policies may reject
 `window.close()` for ordinary tabs that were not script-opened. Tests deliberately
 use script-opened pages for deterministic lifecycle checks.
 
-Native Windows, WSL, remote-forwarding setups and editor versions outside the
-recorded matrix have not been validated. Vim is not supported. Hosted Ubuntu
-x86-64 is now verified; Windows and hosted macOS matrix coverage remains
-incomplete. The MINGW cygpath and Windows
+WSL desktop interoperability, remote-forwarding setups and editor versions
+outside the recorded matrix have not been validated. Vim is not supported.
+Hosted Ubuntu, macOS Intel and native Windows Server 2022 checks are verified.
+The MINGW cygpath and untested Windows
 image-root fixes have source review only. External PlantUML service rendering and PDF/print output were not
 browser-tested. Local-image accessibility, legacy diagram dark-mode contrast,
 the recorded `md-it-meta` full-text notice gap and retained older Snap/sequence

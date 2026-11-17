@@ -208,7 +208,7 @@ renderers retain their existing styling limitations: some diagram backgrounds
 stay white and some chart/sequence text has low contrast in dark mode. This
 maintenance block does not add a new diagram viewer or harmonize those themes.
 
-The build reports 74 emitted npm packages. The notice inventory explicitly
+At that revision, the build reported 74 emitted npm packages. The notice inventory explicitly
 records `md-it-meta`'s missing full-text license notice and the limits of native
 Viz/ELK provenance; see [third-party notices](../THIRD_PARTY_NOTICES.md). Zero npm
 findings does not audit retained vendor code or establish a trust mode for
@@ -308,8 +308,8 @@ results alone do not establish native Windows, Linux x86-64 or WSL desktop
 interoperability. The separate acceptance steps are
 in [platform testing](platform-testing.md).
 
-The `md-it-meta` notice gap was rechecked, including its parent repository, with
-no full-text notice found. It remains recorded rather than being filled with
+The `md-it-meta` notice gap was rechecked at that stage, including its parent repository, with
+no full-text notice found. It remained recorded rather than being filled with
 assumed attribution. No frontmatter or dependency replacement is included here.
 The installed plugin/dotfiles remain at v0.1.0. The validated platform changes
 are recorded with this follow-up, without a push, tag or release publication.
@@ -371,6 +371,56 @@ desktop interoperability, general desktop focus/default-launcher behavior, or
 the cause of the earlier intermittent startup and Firefox DOM timeouts. Those
 limits remain explicit alongside the independent local ARM64 results above.
 
+## Frontmatter dependency follow-up
+
+The plugin-owned adapter replaces `md-it-meta`, retaining the same `js-yaml`
+3.15.2 parser as a pinned direct dependency. The lockfile removes only
+`md-it-meta`; no retained package version changes. A normal clean `npm ci`
+installed 203 packages and the complete build passed on Node 24.12.0/npm 11.10.0.
+The generated browser inventory has 72 emitted npm packages, all with recorded
+full-text notice files and no declaration-only notice gaps. The locked npm audit
+reports zero findings (2026-11-17). These facts close the specific dependency
+notice gap, not the separately documented native Viz/ELK provenance limits.
+
+| Environment | Neovim | Chromium 141.0.7390.37 | Firefox 142.0.1 |
+| --- | --- | --- | --- |
+| macOS 26.6.2 / ARM64 | 0.12.6 | 33/33 passed (26.1 s) | 33/33 passed (44.0 s) |
+| Fresh Ubuntu 24.04.3 / ARM64 test image | 0.12.2 | 33/33 passed (21.8 s) | 33/33 passed (35.0 s) |
+
+The Linux image built the source from scratch in `plugin with spaces`, using the
+documented pinned Dockerfile and no host dependencies or generated output.
+Both browser runs used disposable containers and isolated Neovim state. The
+actual personal launch-helper smoke also passed with Firefox 161.0 (build
+20261116103204) and an isolated temporary profile. It checked source rendering,
+native linked documents, hidden buffers, unsaved updates, per-buffer stop and
+shutdown. No installed plugin or dotfiles update is part of this follow-up.
+
+Four new real-browser/Neovim regressions cover:
+
+- Complete leading frontmatter with the existing `---`/`...` delimiter
+  combinations, empty metadata, duplicate YAML keys, malformed YAML, non-leading
+  blocks, indented markers and fenced YAML examples. Body source-line attributes
+  retain their original buffer positions.
+- Deleting a closing delimiter during live edits preserves headings and source
+  text, for both opening delimiters. Adding the delimiter back hides only the
+  valid metadata again. This regression was confirmed to fail against the old
+  adapter: a valid YAML mapping followed by Markdown headings (also valid YAML
+  comments) previously consumed and hid everything through EOF.
+- Native heading-fragment navigation and cursor-driven editor scroll alignment
+  after hidden metadata.
+- `hide_yaml_meta = 0` retaining its existing ordinary-Markdown display, without
+  a new formatted or collapsible metadata UI.
+
+The reproducible-build check also verifies that `md-it-meta` is absent from the
+emitted module inventory, `js-yaml` retains its full notice, and the current npm
+module inventory has no full-text notice gaps. Repeated builds remain checked
+for byte-identical output. The retired dependency's special Markdown-It CommonJS
+alias and package-specific notice exception are removed.
+
+The prior twelve-job hosted result applies to `6d59bef`, before this follow-up.
+The new frontmatter source still needs its own hosted matrix result after review
+and commit. The installed plugin and dotfiles are not migrated by this change.
+
 ## Limits
 
 Headless runs do not validate macOS window decorations, desktop focus behavior,
@@ -381,10 +431,9 @@ use script-opened pages for deterministic lifecycle checks.
 WSL desktop interoperability, remote-forwarding setups and editor versions
 outside the recorded matrix have not been validated. Vim is not supported.
 Hosted Ubuntu, macOS Intel and native Windows Server 2022 checks are verified.
-The MINGW cygpath and untested Windows
-image-root fixes have source review only. External PlantUML service rendering and PDF/print output were not
-browser-tested. Local-image accessibility, legacy diagram dark-mode contrast,
-the recorded `md-it-meta` full-text notice gap and retained older Snap/sequence
-libraries remain follow-up. The asset inventory records available provenance
+The MINGW cygpath and untested Windows image-root fixes have source review only.
+External PlantUML service rendering and PDF/print output were not browser-tested.
+Local-image accessibility, legacy diagram dark-mode contrast and retained older
+Snap/sequence libraries remain follow-up. The asset inventory records available provenance
 without claiming a complete native dependency or legal compliance audit. The
 current dependency audit and its scope are recorded in [maintenance](maintenance.md).

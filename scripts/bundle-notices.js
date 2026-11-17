@@ -102,12 +102,6 @@ function writeBundleNotices(root, out, metafile) {
         result.noticeStatus = 'declaration-only'
         result.metadataFile = packagePath + '/package.json'
         if (info.author) result.author = info.author
-        if (info.name === 'md-it-meta') {
-          result.source =
-            'https://github.com/iamcco/md-it-meta/tree/aaed79a1b42f840ca5292d52c7b369b735b415a1'
-          result.sourceNoticeCheck =
-            'The published gitHead tree also contains no LICENSE, COPYING or NOTICE file.'
-        }
       } else result.noticeStatus = 'full-text-files-recorded'
       return result
     })

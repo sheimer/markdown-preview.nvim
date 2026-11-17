@@ -20,7 +20,7 @@ import dot, { renderDot } from './dot'
 import blockUml from './blockPlantuml'
 import codeUml from './plantuml'
 import scrollToLine from './scroll'
-import { meta } from './meta';
+import hideFrontmatter from './frontmatter'
 import markdownImSize from './markdown-it-imsize'
 import { escape} from './utils';
 
@@ -275,7 +275,7 @@ export default class PreviewPage extends React.Component {
         ...mkit
       })
       if (hideYamlMeta === 1) {
-        this.md.use(meta([['---', '\\.\\.\\.'], ['---', '\\.\\.\\.']]))
+        this.md.use(hideFrontmatter)
       }
       // katex
       this.md

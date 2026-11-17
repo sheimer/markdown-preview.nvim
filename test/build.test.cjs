@@ -79,7 +79,18 @@ test('frontend rebuilds produce stable standalone assets and linked license noti
     )
   )
   const mermaid = inventory.packages.find((item) => item.name === 'mermaid')
-  const lockedMermaid = require('../package-lock.json').packages['node_modules/mermaid']
+  assert.ok(!inventory.packages.some((item) => item.name === 'md-it-meta'))
+  const yaml = inventory.packages.find((item) => item.name === 'js-yaml')
+  assert.equal(yaml.version, '3.15.2')
+  assert.equal(yaml.noticeStatus, 'full-text-files-recorded')
+  assert.deepEqual(
+    inventory.limitations,
+    [],
+    'Emitted npm modules must retain full-text notice files'
+  )
+  const lockedMermaid = require('../package-lock.json').packages[
+    'node_modules/mermaid'
+  ]
   assert.equal(mermaid.resolved, lockedMermaid.resolved)
   assert.equal(mermaid.integrity, lockedMermaid.integrity)
   assert.ok(mermaid.repository)

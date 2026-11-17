@@ -106,6 +106,11 @@ vim.keymap.set('n', '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>')
 | `g:mkdp_open_ip` | Override host used in preview URLs |
 | `g:mkdp_open_to_the_world` | Bind beyond loopback when `1`; default `0` |
 
+`hide_yaml_meta` defaults to `1`: complete, valid YAML frontmatter at the start
+of a document is hidden. Unclosed or malformed blocks remain ordinary Markdown,
+preserving the document body. Set it to `0` to retain the existing ordinary
+Markdown display of metadata; a dedicated frontmatter display is deferred.
+
 The lifecycle uses independent per-buffer previews. Set `g:mkdp_auto_start = 1`
 to opt into opening supported buffers on entry. Close-on-switch and
 combined-preview settings are retired. Keep the server on
@@ -156,8 +161,9 @@ Fixtures are in [fixtures](fixtures).
 Build and generated-asset policy, dependency follow-up and release gates are in
 [maintenance](docs/maintenance.md). The renderer retains React 16 and the existing Markdown/math/diagram libraries.
 Broader platform verification, continued asset/dependency upkeep and executable
-bundles remain follow-up work. [Third-party notices](THIRD_PARTY_NOTICES.md) also
-record the remaining full-text notice gap in the legacy metadata dependency.
+bundles remain follow-up work. [Third-party notices](THIRD_PARTY_NOTICES.md)
+record the renderer asset licenses and the replacement of the legacy metadata
+dependency with a plugin-owned adapter.
 
 ## Changes from the original
 

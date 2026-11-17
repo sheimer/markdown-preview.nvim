@@ -36,9 +36,6 @@ const result = esbuild.buildSync({
   entryNames: '[name]-[hash]',
   bundle: true,
   platform: 'browser',
-  // md-it-meta requires Markdown-It from CommonJS. Share the package's public
-  // CommonJS entry with the application's import instead of bundling two parsers.
-  alias: { 'markdown-it': require.resolve('markdown-it') },
   format: 'esm',
   splitting: true,
   chunkNames: 'chunks/[name]-[hash]',

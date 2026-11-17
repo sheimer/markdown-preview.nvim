@@ -205,11 +205,12 @@ full available notices, and supplements the Viz package with its native runtime
 notices and source-archive hashes. See [third-party notices](../THIRD_PARTY_NOTICES.md)
 and [Viz provenance](../app/vendor-viz.json).
 
-There is one explicitly recorded full-text notice gap: `md-it-meta` 0.0.2 declares
-MIT but its published package and source tree contain no standalone full license
-notice. No attribution has been invented. Resolve that gap before claiming
-complete redistribution notice clearance; this inventory is not a legal
-compliance certification. Snap.svg and sequence-diagrams remain older retained
+At the renderer-asset revision there was one full-text notice gap: `md-it-meta`
+0.0.2 declared MIT but its package and source tree supplied no standalone full
+notice. The inventory recorded that gap without inventing attribution. The
+frontmatter follow-up below removes this dependency. The inventory is not a legal
+compliance certification.
+Snap.svg and sequence-diagrams remain older retained
 libraries with verified provenance, rather than being presented as modernized.
 
 The refreshed locked npm audit still reports **0 findings** (2026-11-16). This is
@@ -259,9 +260,9 @@ for reproducible commands and [validation](validation.md) for completed evidence
 The first hosted run and its follow-up below record the path assertion fix and
 subsequent complete matrix pass. WSL desktop checks remain unverified.
 
-The read-only `md-it-meta` notice investigation also checked its parent repository,
+At that stage, the read-only `md-it-meta` investigation checked its parent repository,
 `CaliStyle/markdown-it-meta`, which has no standalone license notice either. The
-gap remains explicit; closing it requires a supplied notice or a separately
+gap remained explicit; closing it required a supplied notice or a separately
 tested dependency replacement. Platform work does not invent license text or
 change frontmatter behavior to remove that dependency incidentally.
 
@@ -280,6 +281,33 @@ two macOS/Firefox jobs never acquired runners; the user-triggered rerun complete
 without another source change. Hosted matrix acceptance is complete; see
 [validation](validation.md#hosted-ci-annotations-follow-up-2026-11-17).
 
+## Frontmatter dependency follow-up
+
+The legacy `md-it-meta` dependency is removed rather than supplied with an
+invented notice. Its published source and both small upstream histories contain
+no full-text grant/copyright notice. An independently written plugin adapter now
+handles the preview's actual requirement: hiding valid leading frontmatter.
+The already-used `js-yaml` version 3.15.2 is pinned directly, preserving YAML
+validation and duplicate-key handling. No other locked package version changes.
+
+The adapter blanks complete metadata lines before Markdown block parsing,
+retaining their line count so headings and editor scroll synchronization stay
+aligned with the source buffer. It accepts the existing exact column-zero `---`
+and `...` delimiters. Invalid YAML stays visible as ordinary Markdown. A missing
+closing delimiter now also leaves the document visible instead of consuming the
+body through EOF. The browser regression was confirmed to fail before this fix.
+
+The default `hide_yaml_meta = 1` and the existing ordinary-Markdown display when
+set to `0` are retained. A formatted or collapsible metadata display remains
+deferred. The adapter does not use parsed metadata for titles or other features.
+
+Removing the dependency also removes its special CommonJS Markdown-It build
+alias and its package-specific notice-gap exception. Generated reports now
+record full-text files for every emitted npm module; build checks guard that
+contract. Native Viz/ELK provenance limits remain separately documented in
+[third-party notices](../THIRD_PARTY_NOTICES.md). Current acceptance evidence is
+recorded in [validation](validation.md).
+
 ## Focused follow-up
 
 1. Runtime dependency/input hardening is committed as `d1a649b`. Continue refreshing
@@ -288,8 +316,8 @@ without another source change. Hosted matrix acceptance is complete; see
    frontend-builder dependency graph and OpenSSL compatibility option while
    preserving the rendering stack and per-buffer RPC contract.
 3. Renderer asset maintenance is committed as `d46c8b1`. Keep the manifests and
-   generated notices aligned when updating packages, and resolve the recorded
-   `md-it-meta` full-text notice gap. Mermaid viewer features remain deferred.
+   generated notices aligned when updating packages. The frontmatter follow-up
+   removes the `md-it-meta` notice gap. Mermaid viewer features remain deferred.
 4. Platform checks are implemented; see [platform testing](platform-testing.md).
    The full Ubuntu/macOS Intel/Windows hosted matrix passes. WSL desktop acceptance
    remains open before expanding support claims. Standalone executable bundles are deferred.

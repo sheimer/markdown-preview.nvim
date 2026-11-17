@@ -56,14 +56,24 @@ closure audit.
 Khroma's published metadata omits its license field; its complete source license
 explicitly names MIT and its authors, which the inventory records.
 
-There is one concrete notice gap: **md-it-meta 0.0.2** declares MIT and author
-`iamcco`, but supplies no standalone full-text license notice. Its published
+The former **md-it-meta 0.0.2** dependency declared MIT and author `iamcco`, but
+supplied no standalone full-text license notice. Its published
 [source commit](https://github.com/iamcco/md-it-meta/tree/aaed79a1b42f840ca5292d52c7b369b735b415a1)
-also contains no LICENSE, COPYING or NOTICE file. The generated reports preserve
-the package's declaration and this limitation instead of inventing a copyright
-year or attribution text. Resolve that gap before claiming complete redistribution
-notice clearance. The inventory is evidence of shipped modules and available
-source notices, not a legal compliance certification.
+also contains no LICENSE, COPYING or NOTICE file. Neither its seven-commit
+history nor its parent repository's five-commit history supplied a full notice.
+The dependency is now removed from the lockfile and emitted browser code.
+Historical attribution and the original integration remain in Git history;
+no notice or copyright attribution has been invented for that package.
+
+Frontmatter handling is independently implemented in
+[app/pages/frontmatter.js](app/pages/frontmatter.js) under this fork's MIT
+license. YAML validation retains the already-used `js-yaml` **3.15.2**, now an
+exact direct dependency. Its complete MIT notice, copyright Vitaly Puzrin, is
+included in generated `BUNDLED-LICENSES.txt` and recorded in the module inventory.
+Every emitted npm module currently has recorded full-text notice files. This
+closes the specific missing-notice dependency gap; the inventory remains evidence
+of available notices, not a legal compliance certification or complete native
+Viz/ELK dependency audit.
 
 ## Retained upstream sources
 
